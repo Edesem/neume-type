@@ -1,38 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { keymap } from '../data/keymap';
-import { attemptMatches, createChordTracker, type ChordResult, type KeyEventLike } from './chord';
+import { script } from '../test-utils/keyScript';
+import { attemptMatches, createChordTracker, type ChordResult } from './chord';
 
-type Step = string; // '↓S', '↑S', '↓J!' (repeat), '↓Meta', 'blur'
-
-/** Build a plain event from a step like "↓S". Shift state is derived from the steps so far. */
-function run(steps: Step[]): ChordResult[] {
+/** Run a key script through a fresh tracker; waits are irrelevant (R2). */
+function run(steps: string[]): ChordResult[] {
   const tracker = createChordTracker();
-  const names: Record<string, string> = {
-    Shift: 'ShiftLeft', ShiftLeft: 'ShiftLeft', ShiftRight: 'ShiftRight', Meta: 'MetaLeft',
-    Space: 'Space', Tab: 'Tab', '=': 'Equal', ';': 'Semicolon', ',': 'Comma', '/': 'Slash',
-  };
-  const down = new Set<string>();
   const results: ChordResult[] = [];
-  for (const raw of steps) {
-    if (raw === 'blur') {
-      tracker.blur();
-      down.clear();
-      continue;
-    }
-    const repeat = raw.endsWith('!');
-    const key = raw.replace('!', '').slice(1);
-    const code = names[key] ?? (key.length === 1 ? `Key${key}` : key);
-    const type = raw[0] === '↓' ? 'down' : 'up';
-    if (type === 'down') down.add(code);
-    else down.delete(code);
-    const ev: KeyEventLike = {
-      type,
-      code,
-      repeat,
-      shiftKey: down.has('ShiftLeft') || down.has('ShiftRight'),
-      metaKey: down.has('MetaLeft'),
-    };
-    results.push(tracker.handle(ev));
+  for (const item of script(steps)) {
+    if ('blur' in item) tracker.blur();
+    else if ('wait' in item) continue;
+    else results.push(tracker.handle(item));
   }
   return results;
 }
@@ -178,6 +156,32 @@ describe('rules not covered by a worked example', () => {
     // Shift keyup was lost; the next keydown reports shiftKey false.
     const r = t.handle({ type: 'down', code: 'KeyK', shiftKey: false });
     expect(r).toMatchObject({ kind: 'attempt', modifiers: [] });
+  });
+
+  it('R14: event.shiftKey true resyncs Shift when no Shift keydown was seen', () => {
+    const t = createChordTracker();
+    const r = t.handle({ type: 'down', code: 'KeyK', shiftKey: true });
+    expect(r).toMatchObject({ kind: 'attempt', modifiers: ['Shift'] });
+    expect(attemptMatches(r as never, target(PETASTI))).toBe(true);
+  });
+
+  it('R7 with R13: repeats of modifier and scored keys are ignored but prevented', () => {
+    const results = run(['↓S', '↓S!', '↓J', '↓J!', '↓Space', '↓Space!']);
+    expect(results.map((r) => [r.kind, r.preventDefault])).toEqual([
+      ['held', true], ['ignored', true], ['attempt', true], ['ignored', true],
+      ['ignored', false], ['ignored', false],
+    ]);
+  });
+
+  it('C21 (tracking only): the second Shift keeps Shift held after the first is released', () => {
+    // No shiftKey on any event, so only the tracker's own held set can supply Shift.
+    const t = createChordTracker();
+    t.handle({ type: 'down', code: 'ShiftLeft' });
+    t.handle({ type: 'down', code: 'ShiftRight' });
+    t.handle({ type: 'up', code: 'ShiftLeft' });
+    expect(t.handle({ type: 'down', code: 'KeyK' })).toMatchObject({ modifiers: ['Shift'] });
+    t.handle({ type: 'up', code: 'ShiftRight' });
+    expect(t.handle({ type: 'down', code: 'KeyK' })).toMatchObject({ modifiers: [] });
   });
 
   it('R14: a keyup for a key not held is ignored', () => {
