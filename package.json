@@ -11,7 +11,8 @@
     "test": "vitest run",
     "e2e": "PLAYWRIGHT_BROWSERS_PATH=0 playwright test",
     "check": "npm run typecheck && npm run lint && npm test && npm run e2e",
-    "prepare": "husky"
+    "prepare": "husky",
+    "screenshots": "PLAYWRIGHT_BROWSERS_PATH=0 playwright test -c playwright.screenshots.config.ts"
   },
   "dependencies": {
     "react": "^19.3.1",
