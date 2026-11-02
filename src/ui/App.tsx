@@ -1,29 +1,52 @@
-import { useEffect, useState } from 'react';
-import { keyLabel } from '../core/keyLabel';
+import { useSyncExternalStore } from 'react';
 import { keymap } from '../data/keymap';
+import type { GameStore } from './store';
 
-export function App() {
-  const [last, setLast] = useState('none');
+const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => setLast(keyLabel(e.code));
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+export function App({ store, debug = false }: { store: GameStore; debug?: boolean }) {
+  const { state, lastWrong, lastKey } = useSyncExternalStore(store.subscribe, store.getSnapshot);
 
   return (
     <main>
       <h1>Neume Type</h1>
-      <p>
-        Last key: <span data-testid="last-key">{last}</span>
-      </p>
-      <div>
-        {keymap.map((e) => (
-          <span key={e.id} className="neume" data-testid={`glyph-${e.id}`}>
-            {String.fromCodePoint(...e.codePoints)}
-          </span>
-        ))}
+      <div data-testid="row">
+        {state.targets.map((entry, i) => {
+          const status = i < state.index ? 'done' : i === state.index ? 'current' : 'todo';
+          return (
+            <span
+              key={i}
+              className="neume"
+              data-index={i}
+              data-state={status}
+              data-neume-id={status === 'current' ? entry.id : undefined}
+              data-error={status === 'current' && lastWrong ? 'true' : undefined}
+            >
+              {glyph(entry.codePoints)}
+            </span>
+          );
+        })}
       </div>
+      {state.done && <p data-testid="done">Done</p>}
+      <p>
+        Errors: <span data-testid="errors">{state.errors}</span> Attempts:{' '}
+        <span data-testid="attempts">{state.attempts}</span>
+      </p>
+      {debug && (
+        <>
+          <p>
+            Last key: <span data-testid="last-key">{lastKey}</span>
+          </p>
+          <h2>Glyphs</h2>
+          <div>
+            {keymap.map((e) => (
+              <span key={e.id} className="neume" data-testid={`glyph-${e.id}`}>
+                {glyph(e.codePoints)}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
     </main>
   );
 }

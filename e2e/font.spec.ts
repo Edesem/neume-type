@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { keymap } from '../src/data/keymap';
 
 test('all 61 keymap code points render from the Neanes font, not a fallback', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/?debug');
   await page.evaluate(() => document.fonts.ready);
 
   const cdp = await page.context().newCDPSession(page);
