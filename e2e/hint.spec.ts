@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { currentIndex, currentTarget, typeChord, findSeed } from './helpers';
-import { shortcutText } from '../src/core/shortcut';
 
 const hint = (page: import('@playwright/test').Page) => page.getByTestId('hint');
 
@@ -21,7 +20,6 @@ test('a wrong attempt shows the current name and shortcut, gone on the next neum
   const target = await currentTarget(page);
   await page.keyboard.press('KeyJ');
   await expect(hint(page)).toContainText(target.name);
-  await expect(hint(page)).toContainText(shortcutText(target));
   expect(await currentIndex(page)).toBe(0);
 
   await typeChord(page, target);
@@ -29,15 +27,16 @@ test('a wrong attempt shows the current name and shortcut, gone on the next neum
   await expect(hint(page)).toHaveCount(0);
 });
 
+test('the hint shows a literal shortcut such as S + L', async ({ page }) => {
+  const sl = findSeed((t) => t[0].id === 'oligonKentimaMiddle');
+  await page.goto(`/?seed=${sl}`);
+  await page.keyboard.press('KeyJ');
+  await expect(hint(page)).toHaveText('Oligon with Kentēma: S + L');
+});
+
 test('restart clears the hint', async ({ page }) => {
   await page.keyboard.press('KeyJ');
   await expect(hint(page)).toBeVisible();
   await page.getByTestId('restart').click();
   await expect(hint(page)).toHaveCount(0);
-});
-
-test('the hint text matches the keymap for the neume shown', async ({ page }) => {
-  await page.keyboard.press('KeyJ');
-  const t = await currentTarget(page);
-  await expect(hint(page)).toHaveText(`${t.name}: ${shortcutText(t)}`);
 });

@@ -11,9 +11,10 @@
 - T7 (merged): `e2e/full-run.spec.ts`. Real key events via `keyboard.down/up`, targets read from `data-neume-id` and looked up in the keymap. Criterion 5 (20 correct of 21 attempts, from the page's attempts/errors counts; the 95.2% display assertion waits for T8's results view), criterion 6 (S tapped then L wrong, S held then L correct), C13 (auto-repeat J does not answer the next J), C17 (Meta+J not scored). Seeds for the S+L and J,J cases are found by running the same sampler the app uses. Mutation-checked: removing the repeat check, the Meta check, or key-release tracking fails the tests.
 - T8 (PR open): results view (time, rate, accuracy via `src/core/format.ts`) replaces the row when done; restart button visible always, blurred after click. Criterion 5 display (95.2%) and criterion 8 asserted in `e2e/results.spec.ts`. Zero-duration run: `neumesPerMinute` is `null` (shown as an em dash) instead of dividing by zero. Rate rounding unit-tested. C17 test now asserts the target is Ison. e2e helpers moved to `e2e/helpers.ts` (pure refactor). Mutation-checked: removing the blur fails the Space test.
 - T9 (PR open): D1 hint. `hintVisible` lives in `src/core/session.ts` (set by a wrong attempt, cleared by a correct one or restart); `src/core/shortcut.ts` builds text like `S + L` from keymap data. App shows `<name>: <shortcut>` (`data-testid=hint`). Unit tests plus `e2e/hint.spec.ts` (none at start, shown after wrong, gone on next neume, cleared by restart).
+- T10 (PR open): `src/ui/look.css` (SPEC section 6 palette, centred column, system monospace, wrapping neume row, distinct current/done/untyped/error states); markup unchanged. `e2e/look.spec.ts` checks all 61 glyph ink boxes (canvas measureText) fit inside their element and viewport; mutation-checked by zeroing padding and line-height (fails). Screenshots in `docs/screenshots/` (test, hint, results). Hint e2e now asserts literal `S + L`.
 
 ## Next
-- T10 Monkeytype look.
+- T11 Human playtest.
 
 ## Dependencies
 - react, react-dom: UI.
