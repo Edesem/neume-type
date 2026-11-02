@@ -228,3 +228,32 @@ describe('criterion 4: scoring', () => {
     expect(createSession({ random: () => 0, now: () => 0 }).state().results).toBeNull();
   });
 });
+
+describe('D1 hint', () => {
+  const wrong = { type: 'down', code: 'KeyH' } as const;
+
+  it('is off at the start, on after a wrong attempt, off after a correct one', () => {
+    const session = createSession({ random: rigged([J, K]), now: () => 0 });
+    expect(session.state().hintVisible).toBe(false);
+    session.handle(wrong);
+    session.handle({ type: 'up', code: 'KeyH' });
+    expect(session.state().hintVisible).toBe(true);
+    session.handle({ type: 'down', code: 'KeyJ' });
+    expect(session.state()).toMatchObject({ index: 1, hintVisible: false });
+  });
+
+  it('stays on through further wrong attempts and modifier-only presses', () => {
+    const session = createSession({ random: rigged([J]), now: () => 0 });
+    session.handle(wrong);
+    session.handle({ type: 'down', code: 'KeyS' });
+    session.handle({ type: 'down', code: 'KeyH' });
+    expect(session.state().hintVisible).toBe(true);
+  });
+
+  it('is cleared by restart', () => {
+    const session = createSession({ random: rigged([J]), now: () => 0 });
+    session.handle(wrong);
+    session.restart();
+    expect(session.state().hintVisible).toBe(false);
+  });
+});
