@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keyLabel } from '../core/keyLabel';
+import { keymap } from '../data/keymap';
 
 export function App() {
   const [last, setLast] = useState('none');
@@ -16,9 +17,13 @@ export function App() {
       <p>
         Last key: <span data-testid="last-key">{last}</span>
       </p>
-      <span className="neume" data-testid="glyph-probe">
-        {"\uE000"}
-      </span>
+      <div>
+        {keymap.map((e) => (
+          <span key={e.id} className="neume" data-testid={`glyph-${e.id}`}>
+            {String.fromCodePoint(...e.codePoints)}
+          </span>
+        ))}
+      </div>
     </main>
   );
 }
