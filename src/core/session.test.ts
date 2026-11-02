@@ -1,16 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { keymap, type KeymapEntry } from '../data/keymap';
 import { script } from '../test-utils/keyScript';
+import { neumeChances } from './weights';
 import { createSession, sampleTargets, TEST_LENGTH } from './session';
 
 const pool = keymap.filter((e) => e.status !== 'unverified');
+const chances = neumeChances(pool);
 
-/** A random source that picks the named entries in order, then repeats the last one. */
+/**
+ * A random source that picks the named entries in order, then repeats the last one. The draw is
+ * weighted, so each value is the middle of the named entry's slice of [0, 1).
+ */
 function rigged(ids: string[]): () => number {
   let i = 0;
   return () => {
     const id = ids[Math.min(i++, ids.length - 1)];
-    return (pool.findIndex((e) => e.id === id) + 0.5) / pool.length;
+    const at = pool.findIndex((e) => e.id === id);
+    const before = chances.slice(0, at).reduce((a, b) => a + b, 0);
+    return before + chances[at] / 2;
   };
 }
 
@@ -116,7 +123,7 @@ describe('criterion 3: sampling', () => {
     expect(new Set(t.map((e) => e.id)).size).toBe(1);
   });
 
-  it('maps the random range uniformly onto the pool, ends included', () => {
+  it('maps the random range onto the pool in keymap order, ends included', () => {
     expect(sampleTargets(() => 0, pool)[0]).toBe(pool[0]);
     expect(sampleTargets(() => 0.999999, pool)[0]).toBe(pool[pool.length - 1]);
   });
