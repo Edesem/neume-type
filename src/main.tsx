@@ -4,6 +4,7 @@ import { seededRandom } from './core/random';
 import { App } from './ui/App';
 import { createGameStore } from './ui/store';
 import './ui/fonts.css';
+import './ui/look.css';
 
 // ?seed=N makes the draw repeatable (used by Playwright).
 const seed = new URLSearchParams(window.location.search).get('seed');

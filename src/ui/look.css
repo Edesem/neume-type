@@ -1,0 +1,99 @@
+:root {
+  --bg: #323437;
+  --accent: #e2b714;
+  --untyped: #646669;
+  --done: #d1d0c5;
+  --error: #ca4754;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--untyped);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+h1 {
+  align-self: flex-start;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+h2 {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--untyped);
+}
+
+[data-testid='row'] {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+}
+
+.neume {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0.25em 0.15em;
+  overflow: visible;
+  border-bottom: 3px solid transparent;
+  text-align: center;
+}
+
+.neume[data-state='todo'] {
+  color: var(--untyped);
+}
+.neume[data-state='done'] {
+  color: var(--done);
+}
+.neume[data-state='current'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.neume[data-state='current'][data-error='true'] {
+  color: var(--error);
+  border-bottom-color: var(--error);
+}
+
+[data-testid='hint'] {
+  margin: 0;
+  color: var(--error);
+}
+
+[data-testid='done'] p {
+  margin: 0.25rem 0;
+  color: var(--untyped);
+}
+[data-testid='done'] span {
+  color: var(--accent);
+  font-size: 1.5rem;
+}
+
+button {
+  font: inherit;
+  color: var(--done);
+  background: transparent;
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+}
+button:hover,
+button:focus-visible {
+  background: var(--done);
+  color: var(--bg);
+}
