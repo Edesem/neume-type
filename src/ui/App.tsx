@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { keymap } from '../data/keymap';
 import { formatResults } from '../core/format';
+import { shortcutText } from '../core/shortcut';
 import type { GameStore } from './store';
 
 const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
@@ -31,6 +32,11 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
             );
           })}
         </div>
+      )}
+      {state.hintVisible && !state.done && (
+        <p data-testid="hint">
+          {state.targets[state.index].name}: {shortcutText(state.targets[state.index])}
+        </p>
       )}
       <button
         type="button"

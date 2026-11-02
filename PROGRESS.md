@@ -10,9 +10,10 @@
 - T6 (merged): test screen (glyph reference row and last-key line render only with `?debug`). `src/ui/store.ts` holds the single session/tracker, attaches window listeners once from `main.tsx` (outside React, so StrictMode and re-renders cannot double-count), applies core's preventDefault, and feeds `useSyncExternalStore`. `App.tsx` renders 20 neumes (`data-index`, `data-state`, `data-neume-id` on the current one, `data-error` after a wrong attempt), errors/attempts, a Done marker, and the 61-glyph reference row the font test needs. `?seed=N` gives a repeatable draw (`src/core/random.ts`, mulberry32). Tests: store unit tests (one key press = one attempt), Playwright for plain, Shift and modifier chords, error, and attempt count.
 - T7 (merged): `e2e/full-run.spec.ts`. Real key events via `keyboard.down/up`, targets read from `data-neume-id` and looked up in the keymap. Criterion 5 (20 correct of 21 attempts, from the page's attempts/errors counts; the 95.2% display assertion waits for T8's results view), criterion 6 (S tapped then L wrong, S held then L correct), C13 (auto-repeat J does not answer the next J), C17 (Meta+J not scored). Seeds for the S+L and J,J cases are found by running the same sampler the app uses. Mutation-checked: removing the repeat check, the Meta check, or key-release tracking fails the tests.
 - T8 (PR open): results view (time, rate, accuracy via `src/core/format.ts`) replaces the row when done; restart button visible always, blurred after click. Criterion 5 display (95.2%) and criterion 8 asserted in `e2e/results.spec.ts`. Zero-duration run: `neumesPerMinute` is `null` (shown as an em dash) instead of dividing by zero. Rate rounding unit-tested. C17 test now asserts the target is Ison. e2e helpers moved to `e2e/helpers.ts` (pure refactor). Mutation-checked: removing the blur fails the Space test.
+- T9 (PR open): D1 hint. `hintVisible` lives in `src/core/session.ts` (set by a wrong attempt, cleared by a correct one or restart); `src/core/shortcut.ts` builds text like `S + L` from keymap data. App shows `<name>: <shortcut>` (`data-testid=hint`). Unit tests plus `e2e/hint.spec.ts` (none at start, shown after wrong, gone on next neume, cleared by restart).
 
 ## Next
-- T9 Hint on error, after T8 is reviewed and merged.
+- T10 Monkeytype look.
 
 ## Dependencies
 - react, react-dom: UI.
