@@ -76,3 +76,15 @@ test('plain, Shift and modifier chords each advance the highlight', async ({ pag
   await expect(page.getByTestId('done')).toBeVisible();
   await expect(page.getByTestId('errors')).toHaveText('0');
 });
+
+test('without ?debug the glyph reference row and last-key line are not shown', async ({ page }) => {
+  await expect(page.locator('[data-index]')).toHaveCount(20); // page has loaded
+  await expect(page.getByTestId('last-key')).toHaveCount(0);
+  await expect(page.locator('[data-testid^="glyph-"]')).toHaveCount(0);
+});
+
+test('with ?debug both are shown', async ({ page }) => {
+  await page.goto('/?seed=1&debug');
+  await expect(page.getByTestId('last-key')).toBeVisible();
+  await expect(page.locator('[data-testid^="glyph-"]')).toHaveCount(61);
+});

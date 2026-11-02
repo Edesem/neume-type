@@ -4,7 +4,7 @@ import type { GameStore } from './store';
 
 const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
 
-export function App({ store }: { store: GameStore }) {
+export function App({ store, debug = false }: { store: GameStore; debug?: boolean }) {
   const { state, lastWrong, lastKey } = useSyncExternalStore(store.subscribe, store.getSnapshot);
 
   return (
@@ -32,17 +32,21 @@ export function App({ store }: { store: GameStore }) {
         Errors: <span data-testid="errors">{state.errors}</span> Attempts:{' '}
         <span data-testid="attempts">{state.attempts}</span>
       </p>
-      <p>
-        Last key: <span data-testid="last-key">{lastKey}</span>
-      </p>
-      <h2>Glyphs</h2>
-      <div>
-        {keymap.map((e) => (
-          <span key={e.id} className="neume" data-testid={`glyph-${e.id}`}>
-            {glyph(e.codePoints)}
-          </span>
-        ))}
-      </div>
+      {debug && (
+        <>
+          <p>
+            Last key: <span data-testid="last-key">{lastKey}</span>
+          </p>
+          <h2>Glyphs</h2>
+          <div>
+            {keymap.map((e) => (
+              <span key={e.id} className="neume" data-testid={`glyph-${e.id}`}>
+                {glyph(e.codePoints)}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
     </main>
   );
 }

@@ -16,6 +16,6 @@ store.attach(window, document);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App store={store} />
+    <App store={store} debug={new URLSearchParams(window.location.search).has('debug')} />
   </StrictMode>,
 );
