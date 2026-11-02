@@ -1,4 +1,5 @@
 import { keymap, type KeymapEntry } from '../data/keymap';
+import { neumeChances } from './weights';
 import { attemptMatches, createChordTracker, type ChordResult, type KeyEventLike } from './chord';
 
 export const TEST_LENGTH = 20;
@@ -34,14 +35,25 @@ export interface SessionOptions {
   entries?: readonly KeymapEntry[];
 }
 
-/** Draw `count` neumes uniformly with replacement from entries not marked unverified. */
+/**
+ * Draw `count` neumes with replacement from entries not marked unverified, using the chances
+ * from `neumeChances` (docs/neume-weights.md). `random()` must return a number in [0, 1).
+ */
 export function sampleTargets(
   random: () => number,
   entries: readonly KeymapEntry[] = keymap,
   count: number = TEST_LENGTH,
 ): KeymapEntry[] {
   const pool = entries.filter((e) => e.status !== 'unverified');
-  return Array.from({ length: count }, () => pool[Math.floor(random() * pool.length)]);
+  let running = 0;
+  const upTo = neumeChances(pool).map((p) => (running += p));
+  return Array.from({ length: count }, () => {
+    const r = random();
+    // First entry whose cumulative chance exceeds r. Rounding can leave the last total a hair
+    // under 1, so fall back to the last entry.
+    const i = upTo.findIndex((edge) => r < edge);
+    return pool[i === -1 ? pool.length - 1 : i];
+  });
 }
 
 const round = (value: number, decimals: number) => {

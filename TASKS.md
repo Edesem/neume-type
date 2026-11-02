@@ -89,3 +89,11 @@ The user plays several full tests in a real browser on their own keyboard, compa
 - **Done when:** the user records criterion 11 and the fun verdict in `PROGRESS.md`.
 - **Verified by:** the user.
 - **Autonomous:** no.
+
+## T12. Weighted neume draw
+
+Replace the uniform draw with the weighted one in SPEC section 3a. Add `pitch` and `frequency` to every keymap entry, transcribed from `docs/neume-weights.md`; add `src/core/weights.ts`; make `sampleTargets` draw with the chances.
+
+- **Done when:** SPEC criteria 12 to 14 pass, existing tests are as strict as before, and `npm run check` passes.
+- **Verified by:** Vitest, Playwright, mutation checks (drop the floor, ignore the uncommon multiplier).
+- **Autonomous:** yes.

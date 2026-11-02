@@ -15,7 +15,7 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 ## 3. Test flow
 
-1. On load or restart, draw 20 neumes uniformly at random, with replacement, from entries not marked `unverified`. Repeats are allowed. The random source is injectable for tests.
+1. On load or restart, draw 20 neumes at random with the weighted chances in section 3a, with replacement, from entries not marked `unverified`. Repeats are allowed. The random source is injectable for tests.
 2. The first undone neume is highlighted.
 3. Each **attempt** (section 4) is compared with the current neume. Correct: advance. Wrong: stay, count one error, flash the error colour.
 4. The clock starts at the first attempt, right or wrong. It stops at the attempt that correctly enters neume 20. Modifier presses alone do not start it.
@@ -25,6 +25,14 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
    - Accuracy = correct attempts / total attempts, as a percentage to 1 decimal.
    - Example: 40,000 ms with 5 errors gives 40.00 s, 30.0 per minute, 80.0% (20/25).
 6. The restart button is visible during the test and on results. It draws a new test and resets clock and counts. Attempts on the results screen are ignored.
+
+## 3a. Weighting
+
+The draw is weighted, not uniform: common neumes come up more often than rare ones. The pitch and class of each neume are in [`docs/neume-weights.md`](docs/neume-weights.md), which the owner checked on 2026-11-03 and which is the source for those two columns. They are stored on each keymap entry as `pitch` (`null` for Rest, Cross and Breath) and `frequency` (`common`, `uncommon` or `fixed`). `status` is unchanged: all 61 stay in the draw.
+
+- Raw weight = 0.5^|pitch|, times 0.25 if uncommon. Fixed entries have raw weight 0.02.
+- Chance = raw weight over the total, with a floor of 0.25% per draw. An entry below the floor gets exactly the floor, the others are scaled proportionally so the total is 100%, and this repeats until stable.
+- The halving factor, uncommon multiplier, fixed weight and floor are named constants in `src/core/weights.ts`. The sampler uses the injected random source and handles `random()` values of 0 and just below 1.
 
 ## 4. Chord input
 
@@ -110,6 +118,9 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 9. Type-check, ESLint, Vitest and Playwright all pass locally and in GitHub Actions.
 10. The font and OFL files match the SHA-256 values in section 5.
 11. Human check: glyphs match the guide's Symbol column, and a full test feels playable.
+12. The pitch and class of all 61 rows in `docs/neume-weights.md` equal the keymap's `pitch` and `frequency`, checked by a unit test that fails on any difference.
+13. Chances sum to 1, none is below 0.25%, Ison is highest, and hand-calculated values hold, including a case where the floor needs more than one pass.
+14. A seeded large sample draws each entry at about its chance, includes the rarest entry, and `random()` of 0 and just below 1 give the first and last pool entries.
 
 ## Appendix A: Characters of Quantity
 
