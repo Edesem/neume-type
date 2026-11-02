@@ -46,4 +46,23 @@ Interpretation by main session: GitHub blocks approving your own PR and all agen
 - **T7:** PR #7 approved and merged. The 95.2% display assertion deferred to T8 by main session.
 - **T8:** PR #8 review interrupted when the user accidentally stopped the reviewer. A stopped agent cannot be resumed, so main session started a new reviewer at the user's request; it approved, and PR #8 merged. Non-blocking gap: clock reset on restart is unit-tested only. Agents' context is growing (builder about 130k tokens by T8), so a fresh builder may be cheaper for what remains.
 - **User-requested pause after T8.** T9, T10, T11, final review and report not started.
+- **Resumed 2026-11-03 at the user's request, with a fresh builder for T9** (about 49k tokens for the task, against about 130k for the long-running builder by T8).
+- **T9:** PR #9 approved and merged. Non-blocking: `hint.spec.ts` builds its expected text with `shortcutText`, so only unit tests catch a modifier-dropping bug; added to T10's brief.
+- **Skill problem:** the T9 builder reported that `anthropic-skills:test-driven-development` does not exist in its environment, though it was listed to the main session. It followed TDD by hand. Whether earlier tasks actually loaded the skills has not been confirmed.
+- **Guardrail slip:** the reviewer left `src/core/zz.test.ts` in the shared checkout, against its read-only brief, importing from its deleted worktree. It would have broken `npm test`. Main session saw it in `git status` after merging, inspected it and deleted it. It never reached a commit. Review checks need a clean-tree step.
+- **T10:** PR #10 got changes requested: normal e2e runs rewrote committed screenshots. Builder moved capture to `npm run screenshots`; approved on re-review and merged. Reviewer's first pass used a fresh agent because the earlier reviewer's leftover monitor kept sending empty notifications.
+- **Stall:** the builder pushed its T10 fix at 02:49 with CI green, then never reported, even after the user resumed it from its transcript view. Main session waited about 13 minutes and wrongly guessed it was waiting on CI, until the user asked what was happening and it checked GitHub. Lesson: check the PR state when a status is uncertain, instead of waiting on an agent's report.
+- **Skills, checked in transcripts:** builder 1 (T1-T8) loaded both skills during T1. Builder 2 (T9-T10) got "Unknown skill" for `test-driven-development` and did TDD by hand; no sign it loaded `structured-git-workflow`. Cause unknown.
+- **Builder self-merge:** never happened. The classifier blocked it twice despite the user's approval and an allow rule; main session did all merges from PR #1 on.
+
+## Phase 4: Independent review
+
+**Final reviewer (Sonnet 5.5, medium), fresh agent:** no material problems on `main` at 70db94d. Ran all checks (100 unit, 26 e2e), compared all 61 keymap rows and the modifier list to the live guide by script with 0 differences, checked font and licence hashes, and ran its own browser spec for extra chord cases. Read only: the hook and CI config, and C1-C22 coverage. No fixes needed.
+
+## Phase 5: Report
+
+Main session reported to the user. T11, the human playtest, remains open.
+
+## Ambiguity notes
+
 - **Ambiguity found:** the user's approval allowed self-merge, but nothing in the permission settings reflects it, and the comment-based approval is not a GitHub review.
