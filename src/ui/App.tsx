@@ -16,6 +16,9 @@ export function App() {
       <p>
         Last key: <span data-testid="last-key">{last}</span>
       </p>
+      <span className="neume" data-testid="glyph-probe">
+        {"\uE000"}
+      </span>
     </main>
   );
 }
