@@ -1,0 +1,135 @@
+import { expect, test, type Page } from '@playwright/test';
+import { seededRandom } from '../src/core/random';
+import { sampleTargets } from '../src/core/session';
+import { keymap, type KeymapEntry } from '../src/data/keymap';
+
+const physical = (m: string) => (m === 'Shift' ? 'ShiftLeft' : m);
+
+function targetsFor(seed: number): KeymapEntry[] {
+  return sampleTargets(seededRandom(seed), keymap);
+}
+
+/** First seed whose 20 targets satisfy the predicate. The app draws with the same function. */
+function findSeed(predicate: (targets: KeymapEntry[]) => boolean): number {
+  for (let seed = 1; seed < 100000; seed++) {
+    if (predicate(targetsFor(seed))) return seed;
+  }
+  throw new Error('no seed found');
+}
+
+async function currentTarget(page: Page): Promise<KeymapEntry> {
+  const id = await page.locator('[data-state="current"]').getAttribute('data-neume-id');
+  const entry = keymap.find((e) => e.id === id);
+  if (!entry) throw new Error(`unknown target ${id}`);
+  return entry;
+}
+
+const currentIndex = async (page: Page) =>
+  Number(await page.locator('[data-state="current"]').getAttribute('data-index'));
+
+async function typeChord(page: Page, entry: KeymapEntry) {
+  for (const m of entry.modifiers) await page.keyboard.down(physical(m));
+  await page.keyboard.down(entry.trigger);
+  await page.keyboard.up(entry.trigger);
+  for (const m of [...entry.modifiers].reverse()) await page.keyboard.up(physical(m));
+}
+
+/** Type the current target correctly until the highlight reaches `index`. */
+async function advanceTo(page: Page, index: number) {
+  while ((await currentIndex(page)) < index) await typeChord(page, await currentTarget(page));
+}
+
+const counts = async (page: Page) => ({
+  attempts: Number(await page.getByTestId('attempts').textContent()),
+  errors: Number(await page.getByTestId('errors').textContent()),
+});
+
+test('criterion 5: a full run with one deliberate wrong chord has 20 correct of 21 attempts', async ({ page }) => {
+  await page.goto('/?seed=1');
+  for (let i = 0; i < 20; i++) {
+    const target = await currentTarget(page); // read from data-neume-id, looked up in the keymap
+    if (i === 7) {
+      await page.keyboard.press('KeyH'); // deliberate wrong chord
+      await expect(page.getByTestId('errors')).toHaveText('1');
+      expect(await currentIndex(page)).toBe(7);
+    }
+    await typeChord(page, target);
+  }
+  await expect(page.getByTestId('done')).toBeVisible();
+  const { attempts, errors } = await counts(page);
+  // 20 correct of 21 total, i.e. 95.2%. The results view that shows the percentage is T8.
+  expect({ correct: attempts - errors, total: attempts }).toEqual({ correct: 20, total: 21 });
+});
+
+test.describe('criterion 6: S tapped then L versus S held then L', () => {
+  const isSL = (e: KeymapEntry) => e.id === 'oligonKentimaMiddle';
+  const seed = findSeed((t) => t.some(isSL));
+  const at = targetsFor(seed).findIndex(isSL);
+
+  test('S tapped and released, then L, is wrong on an S+L target', async ({ page }) => {
+    await page.goto(`/?seed=${seed}`);
+    await advanceTo(page, at);
+    expect((await currentTarget(page)).id).toBe('oligonKentimaMiddle');
+    const before = await counts(page);
+
+    await page.keyboard.down('KeyS');
+    await page.keyboard.up('KeyS');
+    await page.keyboard.down('KeyL');
+    await page.keyboard.up('KeyL');
+
+    expect(await counts(page)).toEqual({ attempts: before.attempts + 1, errors: before.errors + 1 });
+    expect(await currentIndex(page)).toBe(at);
+  });
+
+  test('S held, then L, is correct on an S+L target', async ({ page }) => {
+    await page.goto(`/?seed=${seed}`);
+    await advanceTo(page, at);
+    const before = await counts(page);
+
+    await page.keyboard.down('KeyS');
+    await page.keyboard.down('KeyL');
+    await page.keyboard.up('KeyL');
+    await page.keyboard.up('KeyS');
+
+    expect(await counts(page)).toEqual({ attempts: before.attempts + 1, errors: before.errors });
+    expect(await currentIndex(page)).toBe(at + 1);
+  });
+});
+
+test.describe('two Ison targets in a row', () => {
+  const isIson = (e: KeymapEntry) => e.id === 'ison';
+  const seed = findSeed((t) => t.some((e, i) => isIson(e) && i < 19 && isIson(t[i + 1])));
+  const at = targetsFor(seed).findIndex((e, i, t) => isIson(e) && isIson(t[i + 1]));
+
+  test('C13: a held J auto-repeating does not answer the next J', async ({ page }) => {
+    await page.goto(`/?seed=${seed}`);
+    await advanceTo(page, at);
+    const before = await counts(page);
+
+    await page.keyboard.down('KeyJ'); // real press
+    await page.keyboard.down('KeyJ'); // Playwright marks these as auto-repeat
+    await page.keyboard.down('KeyJ');
+    await page.keyboard.down('KeyJ');
+    expect(await currentIndex(page)).toBe(at + 1);
+    expect(await counts(page)).toEqual({ attempts: before.attempts + 1, errors: before.errors });
+
+    await page.keyboard.up('KeyJ');
+    await page.keyboard.down('KeyJ'); // a fresh press does answer the second J
+    await page.keyboard.up('KeyJ');
+    expect(await currentIndex(page)).toBe(at + 2);
+  });
+
+  test('C17: Meta+J does not score on a J target', async ({ page }) => {
+    await page.goto(`/?seed=${seed}`);
+    await advanceTo(page, at);
+    const before = await counts(page);
+
+    await page.keyboard.down('Meta');
+    await page.keyboard.down('KeyJ');
+    await page.keyboard.up('KeyJ');
+    await page.keyboard.up('Meta');
+
+    expect(await counts(page)).toEqual(before);
+    expect(await currentIndex(page)).toBe(at);
+  });
+});
