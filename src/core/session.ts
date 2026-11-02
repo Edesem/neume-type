@@ -6,8 +6,8 @@ export const TEST_LENGTH = 20;
 export interface Results {
   /** Seconds, rounded to 2 decimals. */
   totalSeconds: number;
-  /** Neumes per minute, rounded to 1 decimal. */
-  neumesPerMinute: number;
+  /** Neumes per minute, rounded to 1 decimal. Null when the run took zero time (undefined rate). */
+  neumesPerMinute: number | null;
   /** Percent, rounded to 1 decimal. */
   accuracyPercent: number;
 }
@@ -76,7 +76,7 @@ export function createSession(options: SessionOptions) {
       const ms = endedAt - startedAt;
       results = {
         totalSeconds: round(ms / 1000, 2),
-        neumesPerMinute: round(TEST_LENGTH / (ms / 60000), 1),
+        neumesPerMinute: ms > 0 ? round(TEST_LENGTH / (ms / 60000), 1) : null,
         accuracyPercent: round((TEST_LENGTH / attempts) * 100, 1),
       };
     }

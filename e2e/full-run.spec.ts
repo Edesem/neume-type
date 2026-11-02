@@ -1,48 +1,8 @@
-import { expect, test, type Page } from '@playwright/test';
-import { seededRandom } from '../src/core/random';
-import { sampleTargets } from '../src/core/session';
-import { keymap, type KeymapEntry } from '../src/data/keymap';
-
-const physical = (m: string) => (m === 'Shift' ? 'ShiftLeft' : m);
-
-function targetsFor(seed: number): KeymapEntry[] {
-  return sampleTargets(seededRandom(seed), keymap);
-}
-
-/** First seed whose 20 targets satisfy the predicate. The app draws with the same function. */
-function findSeed(predicate: (targets: KeymapEntry[]) => boolean): number {
-  for (let seed = 1; seed < 100000; seed++) {
-    if (predicate(targetsFor(seed))) return seed;
-  }
-  throw new Error('no seed found');
-}
-
-async function currentTarget(page: Page): Promise<KeymapEntry> {
-  const id = await page.locator('[data-state="current"]').getAttribute('data-neume-id');
-  const entry = keymap.find((e) => e.id === id);
-  if (!entry) throw new Error(`unknown target ${id}`);
-  return entry;
-}
-
-const currentIndex = async (page: Page) =>
-  Number(await page.locator('[data-state="current"]').getAttribute('data-index'));
-
-async function typeChord(page: Page, entry: KeymapEntry) {
-  for (const m of entry.modifiers) await page.keyboard.down(physical(m));
-  await page.keyboard.down(entry.trigger);
-  await page.keyboard.up(entry.trigger);
-  for (const m of [...entry.modifiers].reverse()) await page.keyboard.up(physical(m));
-}
-
-/** Type the current target correctly until the highlight reaches `index`. */
-async function advanceTo(page: Page, index: number) {
-  while ((await currentIndex(page)) < index) await typeChord(page, await currentTarget(page));
-}
-
-const counts = async (page: Page) => ({
-  attempts: Number(await page.getByTestId('attempts').textContent()),
-  errors: Number(await page.getByTestId('errors').textContent()),
-});
+import { expect, test } from '@playwright/test';
+import type { KeymapEntry } from '../src/data/keymap';
+import {
+  advanceTo, counts, currentIndex, currentTarget, findSeed, targetsFor, typeChord,
+} from './helpers';
 
 test('criterion 5: a full run with one deliberate wrong chord has 20 correct of 21 attempts', async ({ page }) => {
   await page.goto('/?seed=1');
@@ -122,6 +82,7 @@ test.describe('two Ison targets in a row', () => {
   test('C17: Meta+J does not score on a J target', async ({ page }) => {
     await page.goto(`/?seed=${seed}`);
     await advanceTo(page, at);
+    expect((await currentTarget(page)).id).toBe('ison');
     const before = await counts(page);
 
     await page.keyboard.down('Meta');

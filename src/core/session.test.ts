@@ -167,6 +167,33 @@ describe('criterion 4: scoring', () => {
     expect(session.state().results).toEqual({ totalSeconds: 33.33, neumesPerMinute: 36, accuracyPercent: 95.2 });
   });
 
+  it('rounds the rate to 1 decimal, down and up', () => {
+    const rate = (ms: number) => {
+      const c = clock();
+      const session = createSession({ random: () => 0, now: c.now });
+      c.set(0);
+      session.handle({ type: 'down', code: 'KeyJ' });
+      session.handle({ type: 'up', code: 'KeyJ' });
+      for (let i = 1; i < 20; i++) {
+        c.set(i === 19 ? ms : 1);
+        session.handle({ type: 'down', code: 'KeyJ' });
+        session.handle({ type: 'up', code: 'KeyJ' });
+      }
+      return session.state().results?.neumesPerMinute;
+    };
+    expect(rate(37000)).toBe(32.4); // 32.432...
+    expect(rate(41000)).toBe(29.3); // 29.268...
+  });
+
+  it('gives a null rate, not Infinity or NaN, when the run took zero time', () => {
+    const session = createSession({ random: () => 0, now: () => 5 }); // frozen clock
+    for (let i = 0; i < 20; i++) {
+      session.handle({ type: 'down', code: 'KeyJ' });
+      session.handle({ type: 'up', code: 'KeyJ' });
+    }
+    expect(session.state().results).toEqual({ totalSeconds: 0, neumesPerMinute: null, accuracyPercent: 100 });
+  });
+
   it('starts the clock at the first attempt, right or wrong', () => {
     const c = clock();
     const session = createSession({ random: () => 0, now: c.now });
