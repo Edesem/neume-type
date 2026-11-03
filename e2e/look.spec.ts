@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { advanceTo } from './helpers';
 
 test('no glyph clips at the chosen size', async ({ page }) => {
   await page.goto('/?debug');
@@ -25,4 +26,15 @@ test('no glyph clips at the chosen size', async ({ page }) => {
     return out;
   });
   expect(clipped).toEqual([]);
+});
+
+test('done neumes are near-white, untyped are dim, stats text keeps its grey', async ({ page }) => {
+  await page.goto('/?seed=1');
+  await advanceTo(page, 1);
+  const colour = (selector: string) =>
+    page.locator(selector).first().evaluate((el) => getComputedStyle(el).color);
+  expect(await colour('.neume[data-state="done"]')).toBe('rgb(242, 241, 234)');
+  expect(await colour('.neume[data-state="todo"]')).toBe('rgb(74, 76, 80)');
+  const stats = page.locator('p', { has: page.getByTestId('errors') });
+  expect(await stats.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(100, 102, 105)');
 });

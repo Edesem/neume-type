@@ -63,6 +63,11 @@ Interpretation by main session: GitHub blocks approving your own PR and all agen
 
 Main session reported to the user. T11, the human playtest, remains open.
 
+## After the report: owner change requests
+
+- **T12, weighted draw:** the owner asked for a pitch-based curve and checked a draft table. Builder (both skills loaded) built PR #12; a fresh reviewer approved and merged. The move of the owner's untracked file left the reviewer unable to compare against it, so main session compared the PR's data to its record of the owner's saved edits: 61 rows, 0 differences. Lesson: when a task moves an input file, keep a copy for the reviewer.
+- **T13, neume colours:** the owner asked for typed neumes to be near white and untyped ones close to the background.
+
 ## Ambiguity notes
 
 - **Ambiguity found:** the user's approval allowed self-merge, but nothing in the permission settings reflects it, and the comment-based approval is not a GitHub review.
