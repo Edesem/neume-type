@@ -3,6 +3,8 @@
   --accent: #e2b714;
   --untyped: #646669;
   --done: #d1d0c5;
+  --neume-todo: #4a4c50;
+  --neume-done: #f2f1ea;
   --error: #ca4754;
 }
 
@@ -55,10 +57,10 @@ h2 {
 }
 
 .neume[data-state='todo'] {
-  color: var(--untyped);
+  color: var(--neume-todo);
 }
 .neume[data-state='done'] {
-  color: var(--done);
+  color: var(--neume-done);
 }
 .neume[data-state='current'] {
   color: var(--accent);

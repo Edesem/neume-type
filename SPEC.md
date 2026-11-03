@@ -103,7 +103,7 @@ Keys are `↓` down and `↑` up. Each row is a required unit test.
 
 ## 6. Look
 
-Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code or assets. Centred column, minimal chrome, system monospace stack for UI text, neumes in a wrapping row. Palette (approximate, recalled, not sourced): background `#323437`, accent/current `#e2b714`, untyped `#646669`, done `#d1d0c5`, error `#ca4754`.
+Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code or assets. Centred column, minimal chrome, system monospace stack for UI text, neumes in a wrapping row. Palette (approximate, recalled, not sourced): background `#323437`, accent/current `#e2b714`, untyped text (labels, stats) `#646669`, error `#ca4754`. Neume states (owner's choice, T13): done `#f2f1ea` (very bright), untyped `#4a4c50` (deliberately low contrast, close to the background), current `#e2b714`. Buttons keep `#d1d0c5`.
 
 ## 7. Acceptance criteria
 

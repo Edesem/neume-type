@@ -97,3 +97,11 @@ Replace the uniform draw with the weighted one in SPEC section 3a. Add `pitch` a
 - **Done when:** SPEC criteria 12 to 14 pass, existing tests are as strict as before, and `npm run check` passes.
 - **Verified by:** Vitest, Playwright, mutation checks (drop the floor, ignore the uncommon multiplier).
 - **Autonomous:** yes.
+
+## T13. Neume state colours
+
+Owner request: typed neumes very bright, untyped neumes low contrast and close to the background. Done `#f2f1ea`, untyped `#4a4c50` on `#323437`. Current and error colours, labels and stats text unchanged. Low contrast is deliberate.
+
+- **Done when:** a Playwright test asserts the computed colours of a done and an untyped neume and that the stats text keeps `#646669`; screenshots regenerated; `npm run check` passes.
+- **Verified by:** Playwright, screenshot.
+- **Autonomous:** yes.
