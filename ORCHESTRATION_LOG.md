@@ -66,7 +66,9 @@ Main session reported to the user. T11, the human playtest, remains open.
 ## After the report: owner change requests
 
 - **T12, weighted draw:** the owner asked for a pitch-based curve and checked a draft table. Builder (both skills loaded) built PR #12; a fresh reviewer approved and merged. The move of the owner's untracked file left the reviewer unable to compare against it, so main session compared the PR's data to its record of the owner's saved edits: 61 rows, 0 differences. Lesson: when a task moves an input file, keep a copy for the reviewer.
-- **T13, neume colours:** the owner asked for typed neumes to be near white and untyped ones close to the background.
+- **T13, neume colours:** the owner asked for typed neumes to be near white and untyped ones close to the background. PR #13 approved and merged. The owner then saw untyped neumes as #B7B1A8. Main session measured the live preview, found the app rendering #4a4c50, and changed no code; the cause was the owner's Dark Reader extension. Lesson: measure the running app before acting on a reported visual bug.
+- **Second final review (fresh Sonnet 5.5, medium):** no material problems on 404aa37. It also measured React coupling for the owner's Vue question.
+- **T11:** owner checked glyphs and gave a verdict: worth pursuing.
 
 ## Ambiguity notes
 
