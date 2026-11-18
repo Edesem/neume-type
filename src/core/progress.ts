@@ -10,6 +10,8 @@ export interface Settings {
   showShortcuts: boolean;
   /** Test length (10, 20 or 50). Optional: absent or invalid means the default (20). */
   length?: number;
+  /** Never draw the same neume twice in a row. Optional: absent or invalid means off. */
+  noRepeats?: boolean;
 }
 
 export interface Best {
@@ -67,9 +69,11 @@ function isProgressV1(v: unknown): v is Progress {
 /** Older versions would be converted here. Only version 1 exists. */
 function migrate(v: unknown): Progress | null {
   if (!isProgressV1(v)) return null;
-  // An unknown or invalid stored length is not corruption: drop it so the default applies.
-  const { length, ...rest } = v.settings;
-  const settings: Settings = (LENGTH_OPTIONS as readonly number[]).includes(length as number) ? { ...rest, length } : rest;
+  // An unknown or invalid stored length or noRepeats is not corruption: drop it so the default applies.
+  const { length, noRepeats, ...rest } = v.settings;
+  const settings: Settings = { ...rest };
+  if ((LENGTH_OPTIONS as readonly number[]).includes(length as number)) settings.length = length;
+  if (typeof noRepeats === 'boolean') settings.noRepeats = noRepeats;
   return { ...v, settings };
 }
 

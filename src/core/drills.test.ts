@@ -72,6 +72,10 @@ describe('drills', () => {
     for (const d of all) expect(drillPool(d.id).length).toBeGreaterThan(0);
   });
 
+  it('every drill pool has at least 2 drawable entries (so avoid repeats is always possible)', () => {
+    for (const d of all) expect(drillPool(d.id).length, d.id).toBeGreaterThanOrEqual(2);
+  });
+
   it('drillPool throws on an unknown id', () => {
     expect(() => drillPool('nope')).toThrow('drillPool: unknown drill "nope"');
   });

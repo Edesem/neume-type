@@ -187,3 +187,9 @@ Player-chosen test length.
 Clear letter modifiers on any keydown with `metaKey` set (macOS drops keyups while Cmd is down). Shift is kept.
 
 - **Done when:** `npm run check` passes and CI is green; the open item (manual macOS check by the owner) is recorded in `PROGRESS.md`.
+
+## T27. No back-to-back repeats
+
+Owner request: an *avoid repeats* option, off by default, so the same neume never appears twice in a row. When on, each later position is drawn from the drill pool minus the previous id with the chances renormalised, using one `random()` per neume; off is today's draw exactly. Saved with the other settings (merged, absent or invalid means off) and toggling restarts the test. Bests keep the `drill:length` key.
+
+- **Done when:** `npm run check` passes and CI is green; every existing seeded unit and e2e test passes unchanged; the toggle is reachable without `?debug`, persists across reload and restarts the test; SPEC sections 3, 3b, 3c and criterion 19 are updated; screenshots regenerated.

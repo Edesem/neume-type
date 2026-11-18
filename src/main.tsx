@@ -29,6 +29,7 @@ const store = createGameStore({
   // A stored drill that no longer exists falls back to the default.
   drillId: drills().some((d) => d.id === saved.drillId) ? saved.drillId : DEFAULT_DRILL_ID,
   showShortcuts: saved.showShortcuts,
+  noRepeats: saved.noRepeats ?? false,
   length: saved.length ?? TEST_LENGTH, // parse already dropped an invalid stored length
   onComplete: (run) => progress.record(run),
   onConfigure: (settings) => progress.saveSettings(settings),

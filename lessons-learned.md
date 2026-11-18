@@ -127,7 +127,7 @@ await page.goto(`/?seed=${seed}`);
 ### Errors and edge cases
 
 17. For every function you write, decide what happens with an empty list and with a count larger than the design assumed. Throw if the answer would be wrong. *Reason: an empty pool yields `undefined` targets; more than 400 entries yields chances that sum above 1.* (A12)
-18. For key-state code, consider the events the browser may never send. The spec's list (blur, hidden page, Shift) may be incomplete. Label an untested platform case in `PROGRESS.md`. *Reason: a suspected stuck modifier after Cmd shortcuts on macOS.* (A20) The tracker now clears every held non-Shift key on a keydown with `metaKey` (SPEC R14, C30); the real-Mac check is still pending in `PROGRESS.md`.
+18. For key-state code, consider the events the browser may never send. The spec's list (blur, hidden page, Shift) may be incomplete. Label an untested platform case in `PROGRESS.md`. *Reason: a suspected stuck modifier after Cmd shortcuts on macOS.* (A20) The tracker now clears every held non-Shift key on a keydown with `metaKey` (SPEC R14, C30); the real-Mac check passed on 2026-11-18 (owner).
 
 ### Tooling and configuration
 

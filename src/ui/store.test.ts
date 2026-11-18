@@ -182,4 +182,15 @@ describe('game store', () => {
     down(win, 'KeyJ');
     expect(store.getSnapshot().state).toMatchObject({ attempts: 1, errors: 0, index: 1 });
   });
+
+  it('configure({ noRepeats: true }) calls onConfigure with noRepeats and the other settings, and publishes once', () => {
+    const seen: unknown[] = [];
+    const store = createGameStore({ random: () => 0, now: () => 0, drillId: 'KeyR', length: 10, onConfigure: (s) => seen.push(s) });
+    let calls = 0;
+    store.subscribe(() => calls++);
+    store.configure({ noRepeats: true });
+    expect(calls).toBe(1);
+    expect(seen).toEqual([{ drillId: 'KeyR', showShortcuts: false, length: 10, noRepeats: true }]);
+    expect(store.getSnapshot().state.noRepeats).toBe(true);
+  });
 });

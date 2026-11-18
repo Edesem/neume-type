@@ -21,7 +21,7 @@ interface KeyboardEventLike extends Event {
  */
 export interface GameStoreOptions extends SessionOptions {
   /** Called after `configure` with the settings now in effect (used to save them). */
-  onConfigure?: (settings: { drillId: string; showShortcuts: boolean; length: number }) => void;
+  onConfigure?: (settings: { drillId: string; showShortcuts: boolean; length: number; noRepeats: boolean }) => void;
 }
 
 export function createGameStore(options: GameStoreOptions) {
@@ -53,8 +53,8 @@ export function createGameStore(options: GameStoreOptions) {
     getSnapshot: () => snapshot,
     configure(patch: Parameters<typeof session.configure>[0]) {
       session.configure(patch);
-      const { drillId, showShortcuts, length } = session.state();
-      options.onConfigure?.({ drillId, showShortcuts, length });
+      const { drillId, showShortcuts, length, noRepeats } = session.state();
+      options.onConfigure?.({ drillId, showShortcuts, length, noRepeats });
       publish();
     },
     restart() {

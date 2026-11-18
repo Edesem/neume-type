@@ -100,6 +100,17 @@ describe('progress store', () => {
     expect(reloaded.getSnapshot().progress.settings).toEqual({ drillId: 'KeyR', showShortcuts: true, length: 50 });
   });
 
+  it('saveSettings({ noRepeats }) merges and survives a reload', () => {
+    const storage = fakeStorage();
+    const store = createProgressStore(storage, now);
+    store.saveSettings({ drillId: 'KeyR', showShortcuts: false, length: 10 });
+    store.saveSettings({ noRepeats: true });
+    const reloaded = createProgressStore(storage, now);
+    expect(reloaded.getSnapshot().progress.settings).toEqual({
+      drillId: 'KeyR', showShortcuts: false, length: 10, noRepeats: true,
+    });
+  });
+
   it('reset keeps the live settings, in memory and in storage', () => {
     const storage = fakeStorage();
     const store = createProgressStore(storage, now);
