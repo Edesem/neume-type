@@ -73,3 +73,5 @@ Class is common, uncommon or fixed. Rest, Cross and Breath have no pitch and are
 | 59 | `Shift + B + ;` | Rest (4 beats) | none | fixed | 0.02 | 0.25% | n/a |
 | 60 | `Shift + =` | Cross | none | fixed | 0.02 | 0.25% | n/a |
 | 61 | `=` | Breath | none | fixed | 0.02 | 0.25% | n/a |
+
+Quality and fthora entries (SPEC Appendix B) are not weighted: flat weight (pitch none, class fixed), drawn only in their own drills (V and T), pending owner input.

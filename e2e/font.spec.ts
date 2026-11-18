@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { keymap } from '../src/data/keymap';
 
-test('all 61 keymap code points render from the Neanes font, not a fallback', async ({ page }) => {
+test('all 90 keymap code points render from the Neanes font, not a fallback', async ({ page }) => {
   await page.goto('/?debug');
   await page.evaluate(() => document.fonts.ready);
 
@@ -10,7 +10,7 @@ test('all 61 keymap code points render from the Neanes font, not a fallback', as
   await cdp.send('CSS.enable');
   const { root } = await cdp.send('DOM.getDocument');
 
-  expect(keymap).toHaveLength(61);
+  expect(keymap).toHaveLength(90);
 
   // Chrome reports the primary font even for a missing glyph (it draws .notdef), so also
   // compare each glyph's pixels with the pixels of a code point the font lacks (U+E7FF).

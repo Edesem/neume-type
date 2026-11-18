@@ -13,6 +13,7 @@ import {
 } from './weights';
 import { sampleTargets } from './session';
 
+const quantity = keymap.filter((e) => e.table === 'quantity');
 const base = keymap[0];
 const make = (id: string, pitch: number | null, frequency: KeymapEntry['frequency']): KeymapEntry => ({
   ...base,
@@ -141,7 +142,7 @@ describe('neumeChances', () => {
   });
 
   describe('for the real keymap', () => {
-    const pool = drawPool(keymap);
+    const pool = drawPool(quantity);
     const c = neumeChances(pool);
     const chanceOf = (id: string) => c[pool.findIndex((e) => e.id === id)];
 
@@ -164,13 +165,13 @@ describe('neumeChances', () => {
 });
 
 describe('sampleTargets with weights', () => {
-  const pool = drawPool(keymap);
+  const pool = drawPool(quantity);
   const chances = neumeChances(pool);
 
   it('draws roughly at the stated chances over a large seeded sample', () => {
     const n = 200_000;
     const counts = new Map<string, number>();
-    for (const e of sampleTargets(seededRandom(12345), keymap, n)) {
+    for (const e of sampleTargets(seededRandom(12345), quantity, n)) {
       counts.set(e.id, (counts.get(e.id) ?? 0) + 1);
     }
     pool.forEach((e, i) => {
@@ -182,12 +183,12 @@ describe('sampleTargets with weights', () => {
 
   it('does draw a rare entry', () => {
     const rare = pool[chances.indexOf(Math.min(...chances))];
-    const drawn = sampleTargets(seededRandom(7), keymap, 200_000);
+    const drawn = sampleTargets(seededRandom(7), quantity, 200_000);
     expect(drawn.some((e) => e.id === rare.id)).toBe(true);
   });
 
   it('draws with replacement and never an unverified entry', () => {
-    const entries: KeymapEntry[] = [{ ...keymap[0], id: 'bad', status: 'unverified' }, ...keymap];
+    const entries: KeymapEntry[] = [{ ...keymap[0], id: 'bad', status: 'unverified' }, ...quantity];
     const drawn = sampleTargets(seededRandom(3), entries, 5000);
     expect(drawn.some((e) => e.status === 'unverified')).toBe(false);
     expect(new Set(drawn.map((e) => e.id)).size).toBeLessThan(drawn.length);
@@ -195,21 +196,21 @@ describe('sampleTargets with weights', () => {
 
   describe('boundaries of random()', () => {
     it('0 gives the first entry', () => {
-      expect(sampleTargets(() => 0, keymap, 1)[0]).toBe(pool[0]);
+      expect(sampleTargets(() => 0, quantity, 1)[0]).toBe(pool[0]);
     });
 
     it('the largest value below 1 gives the last entry', () => {
-      expect(sampleTargets(() => 1 - 2 ** -53, keymap, 1)[0]).toBe(pool[pool.length - 1]);
+      expect(sampleTargets(() => 1 - 2 ** -53, quantity, 1)[0]).toBe(pool[pool.length - 1]);
     });
 
     it('a value on a cumulative edge goes to the next entry', () => {
-      expect(sampleTargets(() => chances[0], keymap, 1)[0]).toBe(pool[1]);
-      expect(sampleTargets(() => chances[0] - 1e-9, keymap, 1)[0]).toBe(pool[0]);
+      expect(sampleTargets(() => chances[0], quantity, 1)[0]).toBe(pool[1]);
+      expect(sampleTargets(() => chances[0] - 1e-9, quantity, 1)[0]).toBe(pool[0]);
     });
 
     it('never returns undefined even if rounding leaves the total just under 1', () => {
       for (const r of [1 - 2 ** -53, 0.9999999999999, 0.999999]) {
-        expect(sampleTargets(() => r, keymap, 1)[0]).toBeDefined();
+        expect(sampleTargets(() => r, quantity, 1)[0]).toBeDefined();
       }
     });
   });

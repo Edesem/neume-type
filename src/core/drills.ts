@@ -14,22 +14,29 @@ export const DEFAULT_DRILL_ID = 'all';
 
 const isLetter = (code: string) => code !== 'Shift';
 
+/** Appendix B drills come after the quantity ones, in this order. */
+const LATE_DRILLS = ['KeyV', 'KeyT'];
+
 /**
- * Practice drills: every entry, entries without a letter modifier, then one drill per letter
- * modifier used by a verified entry, in `MODIFIERS` order. Groups follow the guide's modifier table.
+
+ * Practice drills: every quantity entry (the default draw), quantity entries without a letter
+ * modifier, then one drill per letter modifier used by a verified entry: the quantity ones in
+ * `MODIFIERS` order, then V (quality) and T (fthoras). Groups follow the guide's modifier table.
  */
 export function drills(entries: readonly KeymapEntry[] = keymap): Drill[] {
   const verified = drawPool(entries);
+  const quantity = verified.filter((e) => e.table === 'quantity');
   const list: Drill[] = [
-    { id: DEFAULT_DRILL_ID, label: 'all', title: 'Every neume', entries: verified },
+    { id: DEFAULT_DRILL_ID, label: 'all', title: 'Every quantity neume', entries: quantity },
     {
       id: 'plain',
       label: 'plain',
       title: 'No letter modifier',
-      entries: verified.filter((e) => !e.modifiers.some(isLetter)),
+      entries: quantity.filter((e) => !e.modifiers.some(isLetter)),
     },
   ];
-  for (const code of MODIFIERS.filter(isLetter)) {
+  const letters = MODIFIERS.filter(isLetter);
+  for (const code of [...letters.filter((c) => !LATE_DRILLS.includes(c)), ...LATE_DRILLS]) {
     const group = verified.filter((e) => e.modifiers.includes(code));
     if (group.length > 0) {
       list.push({ id: code, label: keyName(code), title: MODIFIER_CATEGORIES[code], entries: group });

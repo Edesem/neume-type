@@ -30,6 +30,8 @@ function parseDoc(): DocRow[] {
   return rows;
 }
 
+const quantity = keymap.filter((e) => e.table === 'quantity');
+
 describe('docs/neume-weights.md matches the keymap', () => {
   const rows = parseDoc();
 
@@ -38,7 +40,7 @@ describe('docs/neume-weights.md matches the keymap', () => {
   });
 
   it('agrees with the keymap on name, pitch and class for every row', () => {
-    keymap.forEach((entry, i) => {
+    quantity.forEach((entry, i) => {
       const row = rows[i];
       expect({ row: row.n, name: row.name, pitch: row.pitch, frequency: row.frequency }).toEqual({
         row: i + 1,
@@ -52,12 +54,19 @@ describe('docs/neume-weights.md matches the keymap', () => {
 
 describe('keymap weight data', () => {
   it('has a pitch for every pitched neume and null for Rest, Cross and Breath', () => {
-    const fixed = keymap.filter((e) => e.frequency === 'fixed').map((e) => e.id);
+    const fixed = quantity.filter((e) => e.frequency === 'fixed').map((e) => e.id);
     expect(fixed).toEqual(['leimma1', 'leimma2', 'leimma3', 'leimma4', 'stavros', 'breath']);
     for (const e of keymap) expect(e.pitch === null).toBe(e.frequency === 'fixed');
   });
 
-  it('keeps all 61 entries verified', () => {
-    expect(keymap.every((e) => e.status === 'verified')).toBe(true);
+  it('every Appendix B entry is pitch null and fixed (pending owner)', () => {
+    for (const e of keymap.filter((x) => x.table !== 'quantity')) {
+      expect(e).toMatchObject({ pitch: null, frequency: 'fixed' });
+    }
+  });
+
+  it('keeps all quantity entries verified', () => {
+    expect(quantity).toHaveLength(61);
+    expect(quantity.every((e) => e.status === 'verified')).toBe(true);
   });
 });
