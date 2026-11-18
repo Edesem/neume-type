@@ -1,11 +1,8 @@
-import { keyLabel } from '../core/keyLabel';
 import type { KeyEventLike } from '../core/chord';
 import { createSession, type SessionState } from '../core/session';
 
 export interface Snapshot {
   state: SessionState;
-  lastWrong: boolean;
-  lastKey: string;
 }
 
 interface KeyboardEventLike extends Event {
@@ -25,10 +22,10 @@ interface KeyboardEventLike extends Event {
 export function createGameStore(options: { random: () => number; now: () => number }) {
   const session = createSession(options);
   const listeners = new Set<() => void>();
-  let snapshot: Snapshot = { state: session.state(), lastWrong: false, lastKey: 'none' };
+  let snapshot: Snapshot = { state: session.state() };
 
-  const publish = (patch: Partial<Snapshot>) => {
-    snapshot = { ...snapshot, state: session.state(), ...patch };
+  const publish = () => {
+    snapshot = { state: session.state() };
     listeners.forEach((l) => l());
   };
 
@@ -51,23 +48,15 @@ export function createGameStore(options: { random: () => number; now: () => numb
     getSnapshot: () => snapshot,
     restart() {
       session.restart();
-      publish({ lastWrong: false });
+      publish();
     },
     /** Attach once per page. Returns a detach function. */
     attach(win: EventTarget, doc: EventTarget = win) {
       const onDown = (ev: Event) => {
         const e = ev as KeyboardEventLike;
-        const errorsBefore = session.state().errors;
         const result = session.handle(toEvent('down', e));
         if (result.preventDefault) e.preventDefault();
-        if (result.kind === 'attempt') {
-          publish({
-            lastWrong: session.state().errors > errorsBefore,
-            lastKey: keyLabel(e.code),
-          });
-        } else {
-          publish({ lastKey: keyLabel(e.code) });
-        }
+        if (result.kind === 'attempt') publish(); // only attempts change session state
       };
       const onUp = (ev: Event) => {
         session.handle(toEvent('up', ev as KeyboardEventLike));

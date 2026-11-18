@@ -7,7 +7,7 @@ import type { GameStore } from './store';
 const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
 
 export function App({ store, debug = false }: { store: GameStore; debug?: boolean }) {
-  const { state, lastWrong, lastKey } = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const { state } = useSyncExternalStore(store.subscribe, store.getSnapshot);
 
   return (
     <main>
@@ -25,7 +25,7 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
                 data-index={i}
                 data-state={status}
                 data-neume-id={status === 'current' ? entry.id : undefined}
-                data-error={status === 'current' && lastWrong ? 'true' : undefined}
+                data-error={status === 'current' && state.lastAttemptWrong ? 'true' : undefined}
               >
                 {glyph(entry.codePoints)}
               </span>
@@ -33,7 +33,7 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
           })}
         </div>
       )}
-      {state.hintVisible && !state.done && (
+      {state.lastAttemptWrong && !state.done && (
         <p data-testid="hint">
           {state.targets[state.index].name}: {shortcutText(state.targets[state.index])}
         </p>
@@ -54,9 +54,6 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
       </p>
       {debug && (
         <>
-          <p>
-            Last key: <span data-testid="last-key">{lastKey}</span>
-          </p>
           <h2>Glyphs</h2>
           <div>
             {keymap.map((e) => (

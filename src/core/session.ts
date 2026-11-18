@@ -21,8 +21,8 @@ export interface SessionState {
   attempts: number;
   startedAt: number | null;
   endedAt: number | null;
-  /** D1: true after a wrong attempt on the current neume, until it is entered correctly. */
-  hintVisible: boolean;
+  /** True after a wrong attempt on the current neume, until it is entered correctly or the test restarts. */
+  lastAttemptWrong: boolean;
   done: boolean;
   results: Results | null;
 }
@@ -71,7 +71,7 @@ export function createSession(options: SessionOptions) {
   let attempts = 0;
   let startedAt: number | null = null;
   let endedAt: number | null = null;
-  let hintVisible = false;
+  let lastAttemptWrong = false;
 
   const restart = () => {
     // R15: the tracker's held set is left alone because keys are physically still down.
@@ -81,7 +81,7 @@ export function createSession(options: SessionOptions) {
     attempts = 0;
     startedAt = null;
     endedAt = null;
-    hintVisible = false;
+    lastAttemptWrong = false;
   };
   restart();
 
@@ -96,7 +96,7 @@ export function createSession(options: SessionOptions) {
         accuracyPercent: round((TEST_LENGTH / attempts) * 100, 1),
       };
     }
-    return { targets, index, errors, attempts, startedAt, endedAt, hintVisible, done, results };
+    return { targets, index, errors, attempts, startedAt, endedAt, lastAttemptWrong, done, results };
   };
 
   return {
@@ -113,11 +113,11 @@ export function createSession(options: SessionOptions) {
       attempts++;
       if (attemptMatches(result, targets[index])) {
         index++;
-        hintVisible = false;
+        lastAttemptWrong = false;
         if (index >= TEST_LENGTH) endedAt = time;
       } else {
         errors++;
-        hintVisible = true;
+        lastAttemptWrong = true;
       }
       return result;
     },
