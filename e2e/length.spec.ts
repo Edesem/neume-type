@@ -60,6 +60,13 @@ test('bests are separate per length', async ({ page }) => {
   await playRun(page);
   await expect(page.getByTestId('new-best')).toBeVisible();
   await page.getByTestId('length-20').click();
-  await playRun(page);
+  await expect(page.getByTestId('best-rate')).toHaveCount(0); // results are gone, so nothing carries over
+  // Make the 20-neume run clearly slower than the 10-neume best. With one shared best it could not
+  // beat it, so "New best" can only show if the bests are kept per length.
+  for (let i = 0; i < 20 && (await page.getByTestId('done').count()) === 0; i++) {
+    if (i === 19) await page.waitForTimeout(1500);
+    await typeChord(page, await currentTarget(page));
+  }
+  await expect(page.getByTestId('done')).toBeVisible();
   await expect(page.getByTestId('new-best')).toBeVisible();
 });

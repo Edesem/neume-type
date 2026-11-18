@@ -98,6 +98,10 @@ export function createChordTracker(soloTriggers: ReadonlySet<string> = SOLO_TRIG
       if (e.shiftKey === false) SHIFT_CODES.forEach((c) => held.delete(c));
       else if (e.shiftKey === true && !SHIFT_CODES.some((c) => held.has(c))) held.add('ShiftLeft');
 
+      // G15: macOS sends no keyup for a key released while Cmd is down, so any non-Shift key that
+      // looks held when Cmd goes down cannot be trusted. Shift is resynced from the event above.
+      if (e.metaKey) for (const code of [...held]) if (!SHIFT_CODES.includes(code)) held.delete(code);
+
       // R12: browser combinations pass through untouched.
       if (e.ctrlKey || e.metaKey || e.altKey) return ignored;
 
