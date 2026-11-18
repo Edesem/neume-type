@@ -1,9 +1,9 @@
 import type { Page } from '@playwright/test';
+import { physicalCode } from '../src/core/chord';
 import { seededRandom } from '../src/core/random';
 import { sampleTargets } from '../src/core/session';
 import { keymap, type KeymapEntry } from '../src/data/keymap';
 
-export const physical = (m: string) => (m === 'Shift' ? 'ShiftLeft' : m);
 
 export function targetsFor(seed: number): KeymapEntry[] {
   return sampleTargets(seededRandom(seed), keymap);
@@ -28,10 +28,10 @@ export const currentIndex = async (page: Page) =>
   Number(await page.locator('[data-state="current"]').getAttribute('data-index'));
 
 export async function typeChord(page: Page, entry: KeymapEntry) {
-  for (const m of entry.modifiers) await page.keyboard.down(physical(m));
+  for (const m of entry.modifiers) await page.keyboard.down(physicalCode(m));
   await page.keyboard.down(entry.trigger);
   await page.keyboard.up(entry.trigger);
-  for (const m of [...entry.modifiers].reverse()) await page.keyboard.up(physical(m));
+  for (const m of [...entry.modifiers].reverse()) await page.keyboard.up(physicalCode(m));
 }
 
 /** Type the current target correctly until the highlight reaches `index`. */

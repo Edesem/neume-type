@@ -30,9 +30,14 @@ export interface ChordTracker {
   blur(): void;
 }
 
-const SHIFT_CODES = ['ShiftLeft', 'ShiftRight'];
+export const SHIFT_CODES = ['ShiftLeft', 'ShiftRight'];
 
-const SCORED = new Set([
+/** The physical key to press for a logical modifier: `Shift` is ShiftLeft, others are unchanged. */
+export function physicalCode(modifier: string): string {
+  return modifier === 'Shift' ? 'ShiftLeft' : modifier;
+}
+
+export const SCORED_CODES = new Set([
   ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((c) => `Key${c}`),
   ...'0123456789'.split('').map((d) => `Digit${d}`),
   'Minus', 'Equal', 'BracketLeft', 'BracketRight', 'Backslash',
@@ -80,7 +85,7 @@ export function createChordTracker(): ChordTracker {
       if (e.ctrlKey || e.metaKey || e.altKey) return ignored;
 
       const isModifier = modifierOf(e.code) !== undefined;
-      const isScored = SCORED.has(e.code) && !isModifier;
+      const isScored = SCORED_CODES.has(e.code) && !isModifier;
       // R11: unscored keys.
       if (!isModifier && !isScored) return ignored;
 

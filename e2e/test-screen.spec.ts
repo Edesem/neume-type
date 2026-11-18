@@ -1,7 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { physicalCode } from '../src/core/chord';
 import { keymap, type KeymapEntry } from '../src/data/keymap';
-
-const physical = (m: string) => (m === 'Shift' ? 'ShiftLeft' : m);
 
 async function currentTarget(page: Page): Promise<KeymapEntry> {
   const id = await page.locator('[data-state="current"]').getAttribute('data-neume-id');
@@ -15,10 +14,10 @@ async function currentIndex(page: Page): Promise<number> {
 }
 
 async function typeChord(page: Page, entry: KeymapEntry) {
-  for (const m of entry.modifiers) await page.keyboard.down(physical(m));
+  for (const m of entry.modifiers) await page.keyboard.down(physicalCode(m));
   await page.keyboard.down(entry.trigger);
   await page.keyboard.up(entry.trigger);
-  for (const m of [...entry.modifiers].reverse()) await page.keyboard.up(physical(m));
+  for (const m of [...entry.modifiers].reverse()) await page.keyboard.up(physicalCode(m));
 }
 
 test.beforeEach(async ({ page }) => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { keymap } from '../data/keymap';
 import { script } from '../test-utils/keyScript';
-import { attemptMatches, createChordTracker, type ChordResult } from './chord';
+import { attemptMatches, createChordTracker, physicalCode, type ChordResult } from './chord';
 
 /** Run a key script through a fresh tracker; waits are irrelevant (R2). */
 function run(steps: string[]): ChordResult[] {
@@ -202,3 +202,11 @@ describe('rules not covered by a worked example', () => {
     expect(t.handle({ type: 'down', code: 'KeyJ', altKey: true })).toMatchObject({ kind: 'ignored', preventDefault: false });
   });
 });
+
+describe('physicalCode', () => {
+  it('maps the logical Shift to ShiftLeft and leaves other modifiers alone', () => {
+    expect(physicalCode('Shift')).toBe('ShiftLeft');
+    expect(physicalCode('KeyS')).toBe('KeyS');
+  });
+});
+

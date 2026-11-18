@@ -3,6 +3,7 @@ import { keymap, type KeymapEntry } from '../data/keymap';
 import { seededRandom } from './random';
 import {
   applyFloor,
+  drawPool,
   FIXED_WEIGHT,
   HALVING_FACTOR,
   MIN_CHANCE,
@@ -46,6 +47,21 @@ describe('rawWeight', () => {
   });
 });
 
+describe('applyFloor guards', () => {
+  it('throws when entries x floor exceeds 1', () => {
+    expect(() => applyFloor(new Array<number>(401).fill(1), 0.0025)).toThrow(/exceeds 1/);
+  });
+
+  it('accepts exactly 400 entries at a 0.25% floor', () => {
+    const c = applyFloor(new Array<number>(400).fill(1), 0.0025);
+    expect(c.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+  });
+
+  it('throws on an empty array', () => {
+    expect(() => applyFloor([])).toThrow();
+  });
+});
+
 describe('applyFloor', () => {
   it('only normalises when nothing is below the floor', () => {
     const c = applyFloor([1, 0.5, 0.0625, 0.02], 0.0025);
@@ -77,6 +93,26 @@ describe('applyFloor', () => {
   });
 });
 
+describe('drawPool', () => {
+  it('drops unverified entries and keeps the original order', () => {
+    const list = [
+      make('a', 0, 'common'),
+      { ...make('x', 0, 'common'), status: 'unverified' as const },
+      make('b', 1, 'common'),
+    ];
+    expect(drawPool(list).map((e) => e.id)).toEqual(['a', 'b']);
+    const c = neumeChances(drawPool(list));
+    expect(c).toHaveLength(2);
+    expect(c[0]).toBeCloseTo(2 / 3, 12);
+  });
+
+  it('throws when every entry is unverified', () => {
+    expect(() => drawPool([{ ...make('x', 0, 'common'), status: 'unverified' }])).toThrow(
+      'drawPool: no verified entries',
+    );
+  });
+});
+
 describe('neumeChances', () => {
   it('matches hand-calculated values for a small list', () => {
     const list = [
@@ -98,18 +134,16 @@ describe('neumeChances', () => {
     expect(c[0]).toBeCloseTo(1 - MIN_CHANCE, 12);
   });
 
-  it('ignores unverified entries', () => {
-    const c = neumeChances([
-      make('a', 0, 'common'),
-      { ...make('x', 0, 'common'), status: 'unverified' },
-      make('b', 1, 'common'),
-    ]);
-    expect(c).toHaveLength(2);
-    expect(c[0]).toBeCloseTo(2 / 3, 12);
+  it('throws on an unverified entry (input must come from drawPool)', () => {
+    expect(() =>
+      neumeChances([make('a', 0, 'common'), { ...make('x', 0, 'common'), status: 'unverified' }]),
+    ).toThrow('neumeChances: expects a drawPool() result');
   });
 
   describe('for the real keymap', () => {
-    const c = neumeChances(keymap);
+    const pool = drawPool(keymap);
+    const c = neumeChances(pool);
+    const chanceOf = (id: string) => c[pool.findIndex((e) => e.id === id)];
 
     it('sum to 1', () => {
       expect(c.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
@@ -120,26 +154,26 @@ describe('neumeChances', () => {
     });
 
     it('put Ison first', () => {
-      const ison = keymap.findIndex((e) => e.id === 'ison');
-      expect(c[ison]).toBe(Math.max(...c));
+      expect(chanceOf('ison')).toBe(Math.max(...c));
     });
 
     it('make a petastē with a high pitch rarer than Oligon', () => {
-      const at = (id: string) => c[keymap.findIndex((e) => e.id === id)];
-      expect(at('oligon')).toBeGreaterThan(at('petastiYpsiliRight'));
+      expect(chanceOf('oligon')).toBeGreaterThan(chanceOf('petastiYpsiliRight'));
     });
   });
 });
 
 describe('sampleTargets with weights', () => {
+  const pool = drawPool(keymap);
+  const chances = neumeChances(pool);
+
   it('draws roughly at the stated chances over a large seeded sample', () => {
     const n = 200_000;
-    const chances = neumeChances(keymap);
     const counts = new Map<string, number>();
     for (const e of sampleTargets(seededRandom(12345), keymap, n)) {
       counts.set(e.id, (counts.get(e.id) ?? 0) + 1);
     }
-    keymap.forEach((e, i) => {
+    pool.forEach((e, i) => {
       const p = chances[i];
       const observed = (counts.get(e.id) ?? 0) / n;
       expect(Math.abs(observed - p)).toBeLessThan(5 * Math.sqrt((p * (1 - p)) / n));
@@ -147,8 +181,7 @@ describe('sampleTargets with weights', () => {
   });
 
   it('does draw a rare entry', () => {
-    const chances = neumeChances(keymap);
-    const rare = keymap[chances.indexOf(Math.min(...chances))];
+    const rare = pool[chances.indexOf(Math.min(...chances))];
     const drawn = sampleTargets(seededRandom(7), keymap, 200_000);
     expect(drawn.some((e) => e.id === rare.id)).toBe(true);
   });
@@ -161,9 +194,6 @@ describe('sampleTargets with weights', () => {
   });
 
   describe('boundaries of random()', () => {
-    const pool = keymap.filter((e) => e.status !== 'unverified');
-    const chances = neumeChances(keymap);
-
     it('0 gives the first entry', () => {
       expect(sampleTargets(() => 0, keymap, 1)[0]).toBe(pool[0]);
     });

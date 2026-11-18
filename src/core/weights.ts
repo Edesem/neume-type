@@ -22,6 +22,8 @@ export function rawWeight(entry: Pick<KeymapEntry, 'pitch' | 'frequency'>): numb
  * push another entry under the floor, so this repeats until nothing changes.
  */
 export function applyFloor(raw: readonly number[], floor: number = MIN_CHANCE): number[] {
+  if (raw.length === 0) throw new Error('applyFloor: no weights');
+  if (raw.length * floor > 1) throw new Error(`applyFloor: ${raw.length} entries × floor ${floor} exceeds 1`);
   const floored = new Array<boolean>(raw.length).fill(false);
   for (;;) {
     let freeRaw = 0;
@@ -42,7 +44,15 @@ export function applyFloor(raw: readonly number[], floor: number = MIN_CHANCE): 
   }
 }
 
-/** Chances for the entries not marked unverified, in their original order. */
-export function neumeChances(entries: readonly KeymapEntry[]): number[] {
-  return applyFloor(entries.filter((e) => e.status !== 'unverified').map(rawWeight));
+/** The entries that may be drawn: those not marked unverified, in their original order. */
+export function drawPool(entries: readonly KeymapEntry[]): KeymapEntry[] {
+  const pool = entries.filter((e) => e.status !== 'unverified');
+  if (pool.length === 0) throw new Error('drawPool: no verified entries');
+  return pool;
+}
+
+/** Chances for a `drawPool()` result, in the same order. Throws if given an unverified entry. */
+export function neumeChances(pool: readonly KeymapEntry[]): number[] {
+  if (pool.some((e) => e.status === 'unverified')) throw new Error('neumeChances: expects a drawPool() result');
+  return applyFloor(pool.map(rawWeight));
 }
