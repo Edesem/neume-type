@@ -28,7 +28,7 @@ Install Playwright browsers inside the project with `PLAYWRIGHT_BROWSERS_PATH=0`
 ## Layout
 
 - `src/data/keymap.ts`: keymap data only, with no logic. Every entry that could not be verified against the source is marked `unverified`. Never guess shortcuts.
-- `src/core/`: chord detection, scoring and sampling. Plain TypeScript with no React or DOM imports.
+- `src/core/`: chord detection, scoring and sampling. Plain TypeScript with no React or DOM imports (enforced by ESLint, `eslint.config.js`).
 - `src/ui/`: thin React layer.
 - `public/fonts/`: `Neanes.otf` and `OFL.txt`.
 - `e2e/`: Playwright tests that send real key events to the running page.
