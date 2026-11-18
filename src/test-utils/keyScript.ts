@@ -1,12 +1,21 @@
-import type { KeyEventLike } from '../core/chord';
+import { physicalCode, type KeyEventLike } from '../core/chord';
 
 /** One item of a key script: a plain event, a window blur, or a pause in ms. */
 export type ScriptItem = KeyEventLike | { blur: true } | { wait: number };
 
 const NAMES: Record<string, string> = {
-  Shift: 'ShiftLeft', ShiftLeft: 'ShiftLeft', ShiftRight: 'ShiftRight', Meta: 'MetaLeft',
+  Shift: physicalCode('Shift'), ShiftLeft: 'ShiftLeft', ShiftRight: 'ShiftRight', Meta: 'MetaLeft',
   Space: 'Space', Tab: 'Tab', '=': 'Equal', ';': 'Semicolon', ',': 'Comma', '/': 'Slash',
+  '.': 'Period', "'": 'Quote', '-': 'Minus', '[': 'BracketLeft', ']': 'BracketRight',
+  '\\': 'Backslash', '`': 'Backquote',
 };
+
+function codeFor(key: string): string {
+  if (NAMES[key]) return NAMES[key];
+  if (/^[A-Z]$/.test(key)) return `Key${key}`;
+  if (/^[0-9]$/.test(key)) return `Digit${key}`;
+  throw new Error(`script: unknown key "${key}"`);
+}
 
 /**
  * Turn steps like '↓S', '↑S', '↓J!' (auto-repeat), 'blur', '+5000' (wait) into items.
@@ -23,7 +32,7 @@ export function script(steps: string[]): ScriptItem[] {
     if (raw.startsWith('+')) return { wait: Number(raw.slice(1)) };
     const repeat = raw.endsWith('!');
     const key = raw.replace('!', '').slice(1);
-    const code = NAMES[key] ?? (key.length === 1 ? `Key${key}` : key);
+    const code = codeFor(key);
     const type = raw[0] === '↓' ? 'down' : 'up';
     if (type === 'down') down.add(code);
     else down.delete(code);

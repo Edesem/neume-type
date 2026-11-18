@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { keymap } from '../data/keymap';
-import { formatResults } from '../core/format';
+import { formatResults, type FormattedResults } from '../core/format';
 import { shortcutText } from '../core/shortcut';
 import type { GameStore } from './store';
 
@@ -68,7 +68,7 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
   );
 }
 
-function ResultsView({ results }: { results: { time: string; rate: string; accuracy: string } }) {
+function ResultsView({ results }: { results: FormattedResults }) {
   return (
     <section data-testid="done">
       <h2>Results</h2>

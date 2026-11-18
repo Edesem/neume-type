@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { keymap, type KeymapEntry } from '../data/keymap';
 import { script } from '../test-utils/keyScript';
-import { neumeChances } from './weights';
+import { drawPool, neumeChances } from './weights';
 import { createSession, sampleTargets, TEST_LENGTH } from './session';
 
-const pool = keymap.filter((e) => e.status !== 'unverified');
+const pool = drawPool(keymap);
 const chances = neumeChances(pool);
 
 /**
@@ -126,6 +126,12 @@ describe('criterion 3: sampling', () => {
   it('maps the random range onto the pool in keymap order, ends included', () => {
     expect(sampleTargets(() => 0, pool)[0]).toBe(pool[0]);
     expect(sampleTargets(() => 0.999999, pool)[0]).toBe(pool[pool.length - 1]);
+  });
+
+  it('throws on an empty pool', () => {
+    expect(() => sampleTargets(() => 0, [{ ...keymap[0], status: 'unverified' }])).toThrow(
+      'drawPool: no verified entries',
+    );
   });
 
   it('never includes an unverified entry', () => {

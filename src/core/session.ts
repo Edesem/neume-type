@@ -1,5 +1,5 @@
 import { keymap, type KeymapEntry } from '../data/keymap';
-import { neumeChances } from './weights';
+import { drawPool, neumeChances } from './weights';
 import { attemptMatches, createChordTracker, type ChordResult, type KeyEventLike } from './chord';
 
 export const TEST_LENGTH = 20;
@@ -32,7 +32,6 @@ export interface SessionOptions {
   random: () => number;
   /** Returns the current time in ms. */
   now: () => number;
-  entries?: readonly KeymapEntry[];
 }
 
 /**
@@ -44,7 +43,7 @@ export function sampleTargets(
   entries: readonly KeymapEntry[] = keymap,
   count: number = TEST_LENGTH,
 ): KeymapEntry[] {
-  const pool = entries.filter((e) => e.status !== 'unverified');
+  const pool = drawPool(entries);
   let running = 0;
   const upTo = neumeChances(pool).map((p) => (running += p));
   return Array.from({ length: count }, () => {
@@ -62,7 +61,7 @@ const round = (value: number, decimals: number) => {
 };
 
 export function createSession(options: SessionOptions) {
-  const { random, now, entries = keymap } = options;
+  const { random, now } = options;
   const tracker = createChordTracker();
 
   let targets: readonly KeymapEntry[] = [];
@@ -75,7 +74,7 @@ export function createSession(options: SessionOptions) {
 
   const restart = () => {
     // R15: the tracker's held set is left alone because keys are physically still down.
-    targets = sampleTargets(random, entries);
+    targets = sampleTargets(random);
     index = 0;
     errors = 0;
     attempts = 0;
@@ -124,4 +123,3 @@ export function createSession(options: SessionOptions) {
   };
 }
 
-export type Session = ReturnType<typeof createSession>;

@@ -30,8 +30,7 @@ Use these. Do not write a second version.
 
 ### Key names
 
-- **Canonical, pending fix, see AUDIT.md A5:** one exported code-to-label function in `src/core/shortcut.ts` (today it is the private `keyName`), and one exported mapping for "Shift means ShiftLeft or ShiftRight".
-- Until the fix lands: for display text call `shortcutText(entry)`. Do not write another `Key([A-Z])` regular expression, punctuation table or Shift mapping.
+- **Canonical:** `keyName(code)` in `src/core/shortcut.ts` (throws on an unknown code) and `physicalCode(modifier)` in `src/core/chord.ts` (logical `Shift` to `ShiftLeft`). For display text call `shortcutText(entry)`. Do not write another `Key([A-Z])` regular expression, punctuation table or Shift mapping.
 
 ### Keymap data
 
@@ -41,9 +40,8 @@ Use these. Do not write a second version.
 
 ### Sampling and weights
 
-- **Canonical:** `sampleTargets` in `src/core/session.ts` and `neumeChances` in `src/core/weights.ts`.
+- **Canonical:** `sampleTargets` in `src/core/session.ts`, and `drawPool` and `neumeChances` in `src/core/weights.ts`. `drawPool(entries)` is the only place that filters out `unverified` entries; `neumeChances` takes its result and throws on an unverified entry.
 - Chances are in **pool order** (entries not marked `unverified`), not keymap order. Look a chance up by finding the entry in the pool, never by its keymap index.
-- Pending fix, see AUDIT.md A11: a single exported `drawPool(entries)` helper. Until then, filter with `e.status !== 'unverified'` exactly once per call path.
 
 ### Randomness and time
 
@@ -52,10 +50,10 @@ Use these. Do not write a second version.
 
 ### Errors and impossible input
 
-- **Canonical, pending fix, see AUDIT.md A6 and A12:** a function that receives input it cannot handle throws an `Error` with a clear message. It does not return `undefined`, a guessed value or a quietly wrong result.
+- **Canonical:** a function that receives input it cannot handle throws an `Error` with a clear message. It does not return `undefined`, a guessed value or a quietly wrong result.
 
 ```ts
-if (pool.length === 0) throw new Error('sampleTargets: no verified entries to draw from');
+if (pool.length === 0) throw new Error('drawPool: no verified entries');
 ```
 
 ### Validation and configuration
@@ -86,7 +84,7 @@ const text = readFileSync(new URL('../../docs/neume-weights.md', import.meta.url
 
 ### End-to-end tests
 
-- **Canonical:** `e2e/helpers.ts` (`typeChord`, `currentTarget`, `currentIndex`, `advanceTo`, `counts`, `findSeed`, `targetsFor`, `physical`). Import them. Never copy them into a spec file.
+- **Canonical:** `e2e/helpers.ts` (`typeChord`, `currentTarget`, `currentIndex`, `advanceTo`, `counts`, `findSeed`, `targetsFor`; use `physicalCode` from `src/core/chord.ts`). Import them. Never copy them into a spec file.
 - To get a specific neume, use `findSeed(predicate)` and load `/?seed=N`.
 
 ```ts
