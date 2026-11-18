@@ -91,6 +91,15 @@ describe('progress store', () => {
     expect(storage.map.get(`${STORAGE_KEY}.corrupt`)).toBe('{oops');
   });
 
+  it('saveSettings merges, so a drill change keeps the saved length', () => {
+    const storage = fakeStorage();
+    const store = createProgressStore(storage, now);
+    store.saveSettings({ length: 50 });
+    store.saveSettings({ drillId: 'KeyR', showShortcuts: true });
+    const reloaded = createProgressStore(storage, now);
+    expect(reloaded.getSnapshot().progress.settings).toEqual({ drillId: 'KeyR', showShortcuts: true, length: 50 });
+  });
+
   it('reset keeps the live settings, in memory and in storage', () => {
     const storage = fakeStorage();
     const store = createProgressStore(storage, now);

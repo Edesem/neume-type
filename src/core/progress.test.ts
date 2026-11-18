@@ -6,6 +6,7 @@ import {
   PROGRESS_VERSION,
   recordRun,
   serializeProgress,
+  withSettings,
   weakest,
   type Progress,
   type RunSummary,
@@ -68,6 +69,29 @@ describe('parseProgress', () => {
   it('serialize then parse round-trips', () => {
     const { progress } = recordRun(emptyProgress(), run());
     expect(parseProgress(serializeProgress(progress)).progress).toEqual(progress);
+  });
+});
+
+describe('settings.length', () => {
+  const withLength = (length: unknown) =>
+    JSON.stringify({ version: 1, settings: { drillId: 'all', showShortcuts: false, length }, bests: {}, neumes: {} });
+
+  it('round-trips', () => {
+    const p = { ...emptyProgress(), settings: { drillId: 'KeyR', showShortcuts: true, length: 50 } };
+    expect(parseProgress(serializeProgress(p)).progress.settings).toEqual(p.settings);
+  });
+
+  it('an invalid or unknown stored length is dropped (the default applies) and is not corruption', () => {
+    for (const bad of [0, -5, 2.5, 30, 'ten', null]) {
+      const r = parseProgress(withLength(bad));
+      expect(r.corrupt, String(bad)).toBe(false);
+      expect(r.progress.settings.length).toBeUndefined();
+    }
+  });
+
+  it('withSettings merges: a patch without length keeps the stored length', () => {
+    const p = { ...emptyProgress(), settings: { drillId: 'all', showShortcuts: false, length: 10 } };
+    expect(withSettings(p, { drillId: 'KeyR' }).settings).toEqual({ drillId: 'KeyR', showShortcuts: false, length: 10 });
   });
 });
 

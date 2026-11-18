@@ -3,7 +3,7 @@ import { keymap, type KeymapEntry } from '../data/keymap';
 import { script } from '../test-utils/keyScript';
 import { drawPool, neumeChances } from './weights';
 import { seededRandom } from './random';
-import { createSession, sampleTargets, TEST_LENGTH } from './session';
+import { createSession, LENGTH_OPTIONS, sampleTargets, TEST_LENGTH } from './session';
 
 const pool = drawPool(keymap.filter((e) => e.table === 'quantity'));
 const chances = neumeChances(pool);
@@ -473,6 +473,51 @@ describe('onComplete', () => {
     press(session, 'KeyJ');
     press(session, 'KeyH');
     expect(calls).toBe(1);
+  });
+});
+
+describe('selectable test length', () => {
+  const press = (session: ReturnType<typeof createSession>, code: string) => {
+    session.handle({ type: 'down', code });
+    session.handle({ type: 'up', code });
+  };
+
+  it('offers 10, 20 and 50, with 20 as the default', () => {
+    expect(LENGTH_OPTIONS).toEqual([10, 20, 50]);
+    expect(TEST_LENGTH).toBe(20);
+    expect(createSession({ random: () => 0, now: () => 0 }).state().length).toBe(20);
+  });
+
+  it('configure({ length: 10 }) restarts with 10 targets and finishes after 10', () => {
+    const session = createSession({ random: () => 0, now: () => 0 });
+    press(session, 'KeyJ');
+    session.configure({ length: 10 });
+    expect(session.state()).toMatchObject({ length: 10, index: 0, attempts: 0 });
+    expect(session.state().targets).toHaveLength(10);
+    for (let i = 0; i < 10; i++) press(session, 'KeyJ');
+    expect(session.state().done).toBe(true);
+  });
+
+  it('configure({ length: 50 }) draws 50 targets and keeps the drill', () => {
+    const session = createSession({ random: seededRandom(3), now: () => 0, drillId: 'KeyR' });
+    session.configure({ length: 50 });
+    expect(session.state().targets).toHaveLength(50);
+    expect(session.state().drillId).toBe('KeyR');
+  });
+
+  it('configure throws on length 30 and changes nothing', () => {
+    const session = createSession({ random: () => 0, now: () => 0 });
+    expect(() => session.configure({ length: 30 })).toThrow(/length/);
+    expect(session.state().length).toBe(20);
+    expect(session.state().targets).toHaveLength(20);
+  });
+
+  it('onComplete reports the chosen length', () => {
+    const runs: { length: number }[] = [];
+    const session = createSession({ random: () => 0, now: () => 0, onComplete: (r) => runs.push(r) });
+    session.configure({ length: 10 });
+    for (let i = 0; i < 10; i++) press(session, 'KeyJ');
+    expect(runs.map((r) => r.length)).toEqual([10]);
   });
 });
 

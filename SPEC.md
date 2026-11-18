@@ -4,9 +4,9 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 ## 1. Scope
 
-**In:** typing neumes, Neanes keybinds, errors for wrong input, speed and accuracy result, restart button, practice options (show shortcuts, drills) and per-neume stats for the run. The 61 entries in the guide's Characters of Quantity table (Appendix A), including combinations. Qualitative characters and fthoras (Appendix B, 29 entries), drilled separately in the V and T drills and not part of the default draw.
+**In:** typing neumes, Neanes keybinds, errors for wrong input, speed and accuracy result, restart button, practice options (show shortcuts, drills, test length of 10, 20 or 50) and per-neume stats for the run. The 61 entries in the guide's Characters of Quantity table (Appendix A), including combinations. Qualitative characters and fthoras (Appendix B, 29 entries), drilled separately in the V and T drills and not part of the default draw.
 
-**Out:** accounts, online features, themes, settings, backend, database, analytics.
+**Out:** accounts, online features, themes, backend, database, analytics.
 
 **Storage and hosting:** browser storage for saved progress is allowed (U12). Static hosting is allowed with `OFL.txt` beside the font. Still out: accounts, backend, server database, analytics.
 
@@ -17,7 +17,7 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 ## 3. Test flow
 
-1. On load or restart, draw the test length (default 20) of neumes at random with the weighted chances in section 3a, with replacement, from entries not marked `unverified`. Repeats are allowed. The random source is injectable for tests.
+1. On load or restart, draw the chosen test length (10, 20 or 50; default 20) of neumes at random with the weighted chances in section 3a, with replacement, from entries not marked `unverified`. Repeats are allowed. The random source is injectable for tests.
 2. The first undone neume is highlighted.
 3. Each **attempt** (section 4) is compared with the current neume. Correct: advance. Wrong: stay, count one error, and show the current neume in the error colour until it is entered correctly (steady, not blinking).
 4. The clock starts at the first attempt, right or wrong. It stops at the attempt that correctly enters the last neume of the test. Modifier presses alone do not start it.
@@ -57,7 +57,7 @@ Stored only in the browser (`localStorage`), never sent anywhere. One key, `neum
 - **Personal best:** the highest neumes per minute for a drill and length; a tie goes to higher accuracy. A run with show shortcuts on, or with no rate, never sets a best, but its per-neume tallies still add to the all-time totals.
 - **Weakest neumes:** all-time, ranked by error rate (errors / attempts), needing at least 3 attempts and at least one error, then errors desc, then id; top 5. Shown under the test when not empty.
 - **Results** show the best for the current drill and length, and "New best" when the run set it. A "Reset saved progress" button asks for confirmation, then clears the key.
-- Missing or throwing storage (private mode, quota) never breaks the game: progress then lives in memory only. Settings (drill, show shortcuts) are saved and restored on load; an unknown stored drill falls back to `all`.
+- Missing or throwing storage (private mode, quota) never breaks the game: progress then lives in memory only. Settings (drill, show shortcuts, length) are saved and restored on load; an unknown stored drill falls back to `all`, and an absent or invalid stored length to 20. Saving settings merges into the stored ones.
 
 ## 4. Chord input
 
@@ -146,8 +146,8 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 
 1. Keymap data has exactly 61 quantity entries that match Appendix A, and 29 Appendix B entries that match Appendix B (11 quality, 18 fthoras); chords and code point sequences are unique across all 90, and no trigger is also a modifier.
 2. All 22 examples in section 4 pass as unit tests with no DOM.
-3. A sampled test has 20 neumes and never includes an `unverified` entry.
-4. Scoring matches the section 3 example and formulas under a fake clock. The clock does not start on modifier presses and stops at neume 20.
+3. A sampled test has the chosen length (10, 20 or 50; default 20) and never includes an `unverified` entry.
+4. Scoring matches the section 3 example and formulas under a fake clock. The clock does not start on modifier presses and stops at the last neume of the chosen length.
 5. In a real browser, Playwright completes a full test with real key events, including chords and one deliberate wrong chord, and the results show accuracy 95.2% (20/21).
 6. In a real browser, `S` tapped and released then `L` counts as wrong on an `S + L` target, and held `S` then `L` counts as correct.
 7. In a real browser, all code points of all 90 entries render from the Neanes font, not a fallback.

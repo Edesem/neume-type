@@ -5,6 +5,8 @@ import { drawPool, neumeChances } from './weights';
 import { attemptMatches, createChordTracker, type ChordResult, type KeyEventLike } from './chord';
 
 export const TEST_LENGTH = 20;
+/** The test lengths the player can choose. */
+export const LENGTH_OPTIONS = [10, 20, 50] as const;
 
 export interface Results {
   /** Seconds, rounded to 2 decimals. */
@@ -29,6 +31,8 @@ export interface SessionState {
   hintVisible: boolean;
   drillId: string;
   showShortcuts: boolean;
+  /** Number of neumes in the test (equals `targets.length`). */
+  length: number;
   /** Attempts and errors per target id for the current run. */
   tallies: Tallies;
   done: boolean;
@@ -88,7 +92,8 @@ const round = (value: number, decimals: number) => {
 };
 
 export function createSession(options: SessionOptions) {
-  const { random, now, length = TEST_LENGTH, soloTriggers } = options;
+  const { random, now, soloTriggers } = options;
+  let length = options.length ?? TEST_LENGTH;
   let drillId = options.drillId ?? DEFAULT_DRILL_ID;
   let showShortcuts = options.showShortcuts ?? false;
   if (!Number.isInteger(length) || length < 1) throw new Error(`createSession: length must be a positive integer, got ${length}`);
@@ -131,16 +136,20 @@ export function createSession(options: SessionOptions) {
     return {
       targets, index, errors, attempts, startedAt, endedAt, lastAttemptWrong,
       hintVisible: !done && (showShortcuts || lastAttemptWrong),
-      drillId, showShortcuts, tallies: copy, done, results,
+      drillId, showShortcuts, length, tallies: copy, done, results,
     };
   };
 
   return {
     state,
     restart,
-    /** Change the drill and/or the show-shortcuts option, then restart. Throws on an unknown drill. */
-    configure(patch: { drillId?: string; showShortcuts?: boolean }) {
+    /** Change the drill, the show-shortcuts option and/or the length, then restart. Throws on an unknown drill or length. */
+    configure(patch: { drillId?: string; showShortcuts?: boolean; length?: number }) {
       if (patch.drillId !== undefined) drillPool(patch.drillId); // validate before changing anything
+      if (patch.length !== undefined && !(LENGTH_OPTIONS as readonly number[]).includes(patch.length)) {
+        throw new Error(`configure: length must be one of ${LENGTH_OPTIONS.join(', ')}, got ${patch.length}`);
+      }
+      if (patch.length !== undefined) length = patch.length;
       if (patch.drillId !== undefined) drillId = patch.drillId;
       if (patch.showShortcuts !== undefined) showShortcuts = patch.showShortcuts;
       restart();
