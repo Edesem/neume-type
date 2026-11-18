@@ -135,9 +135,11 @@ export function weakest(
   neumes: Readonly<Record<string, NeumeTally>>,
   n: number,
   minAttempts: number,
+  /** If given, ids outside this set are dropped before ranking, so they cannot use up the top `n`. */
+  known?: ReadonlySet<string>,
 ): { id: string; attempts: number; errors: number; rate: number }[] {
   return Object.entries(neumes)
-    .filter(([, t]) => t.attempts >= minAttempts && t.errors > 0)
+    .filter(([id, t]) => (!known || known.has(id)) && t.attempts >= minAttempts && t.errors > 0)
     .map(([id, t]) => ({ id, attempts: t.attempts, errors: t.errors, rate: t.errors / t.attempts }))
     .sort((a, b) => b.rate - a.rate || b.errors - a.errors || a.id.localeCompare(b.id))
     .slice(0, n);

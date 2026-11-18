@@ -1,4 +1,5 @@
 import {
+  bestKey,
   emptyProgress,
   parseProgress,
   recordRun,
@@ -59,7 +60,7 @@ export function createProgressStore(storage: StorageLike | null, now: () => stri
     getSnapshot: () => snapshot,
     record(run: Omit<RunSummary, 'date'>) {
       const { progress, newBest } = recordRun(snapshot.progress, { ...run, date: now() });
-      publish({ progress, lastRun: { newBest, key: `${run.drillId}:${run.length}` } });
+      publish({ progress, lastRun: { newBest, key: bestKey(run.drillId, run.length) } });
     },
     saveSettings(settings: Settings) {
       publish({ ...snapshot, progress: withSettings(snapshot.progress, settings) });
@@ -68,7 +69,12 @@ export function createProgressStore(storage: StorageLike | null, now: () => stri
     reset() {
       if (storage) safely(() => storage.removeItem(STORAGE_KEY), undefined);
       writable = true;
-      snapshot = { progress: emptyProgress(), lastRun: null };
+      // Settings are not progress: keep the live ones so a reload does not revert the drill.
+      const kept = emptyProgress();
+      const settings = snapshot.progress.settings;
+      snapshot = { progress: withSettings(kept, settings), lastRun: null };
+      const isDefault = JSON.stringify(settings) === JSON.stringify(kept.settings);
+      if (!isDefault) persist();
       listeners.forEach((l) => l());
     },
   };

@@ -138,6 +138,16 @@ describe('recordRun', () => {
 });
 
 describe('weakest', () => {
+  it('ignores ids that are not known before ranking and capping', () => {
+    const neumes = {
+      gone1: { attempts: 10, errors: 10 },
+      gone2: { attempts: 10, errors: 9 },
+      real: { attempts: 10, errors: 1 },
+    };
+    const known = new Set(['real']);
+    expect(weakest(neumes, 1, 3, known).map((w) => w.id)).toEqual(['real']);
+  });
+
   it('needs the minimum attempts, at least one error, and ranks by error rate', () => {
     const neumes = {
       a: { attempts: 10, errors: 5 }, // 0.5

@@ -91,6 +91,19 @@ describe('progress store', () => {
     expect(storage.map.get(`${STORAGE_KEY}.corrupt`)).toBe('{oops');
   });
 
+  it('reset keeps the live settings, in memory and in storage', () => {
+    const storage = fakeStorage();
+    const store = createProgressStore(storage, now);
+    store.saveSettings({ drillId: 'KeyR', showShortcuts: true });
+    store.record(run());
+    store.reset();
+    expect(store.getSnapshot().progress.settings).toEqual({ drillId: 'KeyR', showShortcuts: true });
+    expect(store.getSnapshot().progress.neumes).toEqual({});
+    const reloaded = createProgressStore(storage, now);
+    expect(reloaded.getSnapshot().progress.settings).toEqual({ drillId: 'KeyR', showShortcuts: true });
+    expect(reloaded.getSnapshot().progress.bests).toEqual({});
+  });
+
   it('reset removes the key and empties the snapshot', () => {
     const storage = fakeStorage();
     const store = createProgressStore(storage, now);

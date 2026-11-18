@@ -79,3 +79,12 @@ test('a storage that throws does not break the game', async ({ page }) => {
   await playRun(page);
   await expect(page.getByTestId('new-best')).toBeVisible();
 });
+
+test('settings survive a reset and a reload', async ({ page }) => {
+  page.on('dialog', (d) => void d.accept());
+  await page.goto('/?seed=1');
+  await page.getByTestId('drill-KeyR').click();
+  await page.getByTestId('reset-progress').click();
+  await page.reload();
+  await expect(page.getByTestId('drill-KeyR')).toHaveAttribute('aria-pressed', 'true');
+});

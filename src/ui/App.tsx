@@ -9,6 +9,7 @@ import type { ProgressStore } from './progressStore';
 import type { GameStore } from './store';
 
 const allDrills = drills();
+const knownIds: ReadonlySet<string> = new Set(keymap.map((e) => e.id));
 const blurAfter = (e: { currentTarget: HTMLElement }) => e.currentTarget.blur(); // so Space cannot re-trigger it
 
 const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
@@ -18,7 +19,7 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
   const saved = useSyncExternalStore(progress.subscribe, progress.getSnapshot);
   const key = bestKey(state.drillId, state.targets.length);
   const best = saved.progress.bests[key];
-  const weakNeumes = weakest(saved.progress.neumes, 5, 3).filter((w) => keymap.some((e) => e.id === w.id));
+  const weakNeumes = weakest(saved.progress.neumes, 5, 3, knownIds);
 
   return (
     <main>
