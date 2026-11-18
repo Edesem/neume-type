@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { keymap, type KeymapEntry } from '../data/keymap';
 import { script } from '../test-utils/keyScript';
 import { drawPool, neumeChances } from './weights';
+import { seededRandom } from './random';
 import { createSession, sampleTargets, TEST_LENGTH } from './session';
 
 const pool = drawPool(keymap);
@@ -342,6 +343,84 @@ describe('a solo modifier attempt on release', () => {
     session.handle({ type: 'up', code: 'KeyJ' });
     session.handle({ type: 'up', code: 'KeyB' });
     expect(session.state()).toMatchObject({ attempts: 1, errors: 1 });
+  });
+});
+
+describe('practice options', () => {
+  const press = (session: ReturnType<typeof createSession>, code: string) => {
+    session.handle({ type: 'down', code });
+    session.handle({ type: 'up', code });
+  };
+
+  it('configure({ drillId: KeyR }) restarts with only R targets', () => {
+    const session = createSession({ random: seededRandom(5), now: () => 0 });
+    press(session, 'KeyH');
+    session.configure({ drillId: 'KeyR' });
+    const state = session.state();
+    expect(state).toMatchObject({ drillId: 'KeyR', index: 0, errors: 0, attempts: 0 });
+    for (const e of state.targets) expect(e.modifiers).toContain('KeyR');
+  });
+
+  it('the default drill is all and the default draw is unchanged', () => {
+    const a = createSession({ random: seededRandom(9), now: () => 0 }).state();
+    expect(a.drillId).toBe('all');
+    expect(a.targets).toEqual(sampleTargets(seededRandom(9)));
+  });
+
+  it('showShortcuts makes hintVisible true from the start and after correct attempts', () => {
+    const session = createSession({ random: () => 0, now: () => 0, showShortcuts: true });
+    expect(session.state().hintVisible).toBe(true);
+    press(session, 'KeyJ');
+    expect(session.state()).toMatchObject({ index: 1, hintVisible: true });
+  });
+
+  it('without showShortcuts hintVisible follows the last wrong attempt', () => {
+    const session = createSession({ random: () => 0, now: () => 0 });
+    expect(session.state().hintVisible).toBe(false);
+    press(session, 'KeyH');
+    expect(session.state().hintVisible).toBe(true);
+    press(session, 'KeyJ');
+    expect(session.state().hintVisible).toBe(false);
+  });
+
+  it('hintVisible is false when done', () => {
+    const session = createSession({ random: () => 0, now: () => 0, showShortcuts: true, length: 2 });
+    press(session, 'KeyJ');
+    press(session, 'KeyJ');
+    expect(session.state()).toMatchObject({ done: true, hintVisible: false });
+  });
+
+  it('configure can toggle showShortcuts and restarts', () => {
+    const session = createSession({ random: () => 0, now: () => 0 });
+    press(session, 'KeyJ');
+    session.configure({ showShortcuts: true });
+    expect(session.state()).toMatchObject({ showShortcuts: true, index: 0, attempts: 0, hintVisible: true });
+  });
+
+  it('tallies count attempts and errors per target and reset on restart', () => {
+    const session = createSession({ random: () => 0, now: () => 0 }); // all J
+    press(session, 'KeyH');
+    press(session, 'KeyH');
+    press(session, 'KeyJ');
+    expect(session.state().tallies).toEqual({ ison: { attempts: 3, errors: 2 } });
+    session.restart();
+    expect(session.state().tallies).toEqual({});
+  });
+
+  it('keys on the results screen do not change tallies', () => {
+    const session = createSession({ random: () => 0, now: () => 0, length: 1 });
+    press(session, 'KeyJ');
+    const before = session.state().tallies;
+    press(session, 'KeyH');
+    press(session, 'KeyJ');
+    expect(session.state().tallies).toEqual(before);
+    expect(before).toEqual({ ison: { attempts: 1, errors: 0 } });
+  });
+
+  it('configure throws on an unknown drill id', () => {
+    const session = createSession({ random: () => 0, now: () => 0 });
+    expect(() => session.configure({ drillId: 'nope' })).toThrow('drillPool: unknown drill "nope"');
+    expect(session.state().drillId).toBe('all');
   });
 });
 

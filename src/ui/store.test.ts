@@ -159,4 +159,16 @@ describe('game store', () => {
     expect(calls).toBe(1);
     expect(store.getSnapshot().state.attempts).toBe(1);
   });
+
+  it('configure publishes once and applies the setting', () => {
+    const store = make();
+    let calls = 0;
+    store.subscribe(() => calls++);
+    store.configure({ showShortcuts: true });
+    expect(calls).toBe(1);
+    expect(store.getSnapshot().state.showShortcuts).toBe(true);
+    store.configure({ drillId: 'KeyS' });
+    expect(calls).toBe(2);
+    expect(store.getSnapshot().state.drillId).toBe('KeyS');
+  });
 });

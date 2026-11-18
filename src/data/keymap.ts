@@ -22,6 +22,28 @@ export const MODIFIERS: readonly string[] = [
   'KeyF', 'KeyG', 'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'Shift',
 ];
 
+/**
+ * Neanes guide category of each modifier key, from
+ * https://neanes.github.io/neanes/guide/keyboard.html#modifier-keys (accessed 2026-11-18).
+ */
+export const MODIFIER_CATEGORIES: Readonly<Record<string, string>> = {
+  KeyQ: 'Note Indicators',
+  KeyW: 'Measure Bars',
+  KeyE: 'Signs of Alteration',
+  KeyR: 'Kentemata',
+  KeyT: 'Fthoras',
+  KeyA: 'Ison Indicators',
+  KeyS: 'Quantity Modifier 1',
+  KeyD: 'Quantity Modifier 2',
+  KeyF: 'Quantity Modifier 3',
+  KeyG: 'Gorgons',
+  KeyZ: 'Martyria Scales',
+  KeyX: 'Tempo',
+  KeyC: 'Martyria Notes',
+  KeyV: 'Quality',
+  KeyB: 'Temporal Augmentation',
+};
+
 // Transcribed from SPEC Appendix A, in table order.
 export const keymap: readonly KeymapEntry[] = [
   { id: "ison", name: "Ison", modifiers: [], trigger: 'KeyJ', codePoints: [0xE000], status: 'verified', pitch: 0, frequency: 'common' },

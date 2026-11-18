@@ -1,4 +1,6 @@
 import { keymap, type KeymapEntry } from '../data/keymap';
+import { DEFAULT_DRILL_ID, drillPool } from './drills';
+import type { Tallies } from './stats';
 import { drawPool, neumeChances } from './weights';
 import { attemptMatches, createChordTracker, type ChordResult, type KeyEventLike } from './chord';
 
@@ -23,6 +25,12 @@ export interface SessionState {
   endedAt: number | null;
   /** True after a wrong attempt on the current neume, until it is entered correctly or the test restarts. */
   lastAttemptWrong: boolean;
+  /** The hint (name and shortcut) shows: always when `showShortcuts`, else after a wrong attempt; never when done. */
+  hintVisible: boolean;
+  drillId: string;
+  showShortcuts: boolean;
+  /** Attempts and errors per target id for the current run. */
+  tallies: Tallies;
   done: boolean;
   results: Results | null;
 }
@@ -36,6 +44,10 @@ export interface SessionOptions {
   length?: number;
   /** Modifier keys that score alone on release; defaults to the keymap's (none today). */
   soloTriggers?: ReadonlySet<string>;
+  /** Drill to draw from (default `all`). */
+  drillId?: string;
+  /** Show the name and shortcut of the current neume from the start. */
+  showShortcuts?: boolean;
 }
 
 /**
@@ -66,6 +78,8 @@ const round = (value: number, decimals: number) => {
 
 export function createSession(options: SessionOptions) {
   const { random, now, length = TEST_LENGTH, soloTriggers } = options;
+  let drillId = options.drillId ?? DEFAULT_DRILL_ID;
+  let showShortcuts = options.showShortcuts ?? false;
   if (!Number.isInteger(length) || length < 1) throw new Error(`createSession: length must be a positive integer, got ${length}`);
   const tracker = createChordTracker(soloTriggers);
 
@@ -76,16 +90,18 @@ export function createSession(options: SessionOptions) {
   let startedAt: number | null = null;
   let endedAt: number | null = null;
   let lastAttemptWrong = false;
+  let tallies: Record<string, { attempts: number; errors: number }> = {};
 
   const restart = () => {
     // R15: the tracker's held set is left alone because keys are physically still down.
-    targets = sampleTargets(random, keymap, length);
+    targets = sampleTargets(random, drillPool(drillId), length);
     index = 0;
     errors = 0;
     attempts = 0;
     startedAt = null;
     endedAt = null;
     lastAttemptWrong = false;
+    tallies = {};
   };
   restart();
 
@@ -100,12 +116,24 @@ export function createSession(options: SessionOptions) {
         accuracyPercent: round((targets.length / attempts) * 100, 1),
       };
     }
-    return { targets, index, errors, attempts, startedAt, endedAt, lastAttemptWrong, done, results };
+    const copy = Object.fromEntries(Object.entries(tallies).map(([id, t]) => [id, { ...t }]));
+    return {
+      targets, index, errors, attempts, startedAt, endedAt, lastAttemptWrong,
+      hintVisible: !done && (showShortcuts || lastAttemptWrong),
+      drillId, showShortcuts, tallies: copy, done, results,
+    };
   };
 
   return {
     state,
     restart,
+    /** Change the drill and/or the show-shortcuts option, then restart. Throws on an unknown drill. */
+    configure(patch: { drillId?: string; showShortcuts?: boolean }) {
+      if (patch.drillId !== undefined) drillPool(patch.drillId); // validate before changing anything
+      if (patch.drillId !== undefined) drillId = patch.drillId;
+      if (patch.showShortcuts !== undefined) showShortcuts = patch.showShortcuts;
+      restart();
+    },
     blur: () => tracker.blur(),
     handle(event: KeyEventLike): ChordResult {
       const result = tracker.handle(event);
@@ -115,12 +143,15 @@ export function createSession(options: SessionOptions) {
       const time = now();
       if (startedAt === null) startedAt = time;
       attempts++;
+      const tally = (tallies[targets[index].id] ??= { attempts: 0, errors: 0 });
+      tally.attempts++;
       if (attemptMatches(result, targets[index])) {
         index++;
         lastAttemptWrong = false;
         if (index >= targets.length) endedAt = time;
       } else {
         errors++;
+        tally.errors++;
         lastAttemptWrong = true;
       }
       return result;
