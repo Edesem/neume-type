@@ -17,7 +17,7 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 ## 3. Test flow
 
-1. On load or restart, draw the chosen test length (10, 20 or 50; default 20) of neumes at random with the weighted chances in section 3a, with replacement, from entries not marked `unverified`. Repeats are allowed. The random source is injectable for tests.
+1. On load or restart, draw the chosen test length (10, 20 or 50; default 20) of neumes at random with the weighted chances in section 3a, with replacement, from entries not marked `unverified`. Repeats are allowed, including back to back, unless *avoid repeats* is on (section 3b). The random source is injectable for tests.
 2. The first undone neume is highlighted.
 3. Each **attempt** (section 4) is compared with the current neume. Correct: advance. Wrong: stay, count one error, and show the current neume in the error colour until it is entered correctly (steady, not blinking).
 4. The clock starts at the first attempt, right or wrong. It stops at the attempt that correctly enters the last neume of the test. Modifier presses alone do not start it.
@@ -40,6 +40,7 @@ The draw is weighted, not uniform: common neumes come up more often than rare on
 
 - **Show shortcuts:** when on, the current neume's name and shortcut show from the start (and after correct attempts), never on the results screen. Off by default. Toggling restarts the test, so a run is wholly practice or not.
 - **Drill:** `all` (every verified entry, the default draw), `plain` (no letter modifier, Shift-only allowed; 28 entries), then one drill per letter modifier used by a verified entry, in `MODIFIERS` order: R (13), S (5), D (4), F (7), B (4, the rests). Grouping follows the guide's modifier table (S, D, F are Quantity Modifiers 1 to 3, R is Kentemata, B is Temporal Augmentation); the button title shows the category. Changing the drill restarts. Draws within a drill use the same weights and floor, over that drill's pool.
+- **Avoid repeats:** off by default. When on, the same neume id never appears twice in a row within a run. Position 0 is drawn as usual; each later position is drawn from the pool minus the previous id with the remaining chances renormalised (P(j) = c_j / (1 - c_prev)), so the relative chances among the others are unchanged. It uses one `random()` per neume, on or off, and scales it into the reduced range instead of redrawing. A pool with fewer than 2 drawable entries cannot honour it and throws; that is unreachable because every drill has at least 2. Toggling restarts the test. It does not affect personal bests (the key stays drill and length).
 - **Per-neume stats:** the session counts attempts and errors per target id for the current run. The results view lists "Hardest this run": up to 3 neumes with at least one error, sorted by errors desc, then attempts desc, then id, each showing the glyph, name, shortcut and "N errors". With none it shows "No errors".
 
 ## 3c. Saved progress
@@ -48,7 +49,7 @@ Stored only in the browser (`localStorage`), never sent anywhere. One key, `neum
 
 ```
 { version: 1,
-  settings: { drillId, showShortcuts, length? },
+  settings: { drillId, showShortcuts, length?, noRepeats? },
   bests:  { "<drillId>:<length>": { neumesPerMinute, accuracyPercent, totalSeconds, date } },
   neumes: { "<keymap id>": { attempts, errors } } }   // all time
 ```
@@ -57,7 +58,7 @@ Stored only in the browser (`localStorage`), never sent anywhere. One key, `neum
 - **Personal best:** the highest neumes per minute for a drill and length; a tie goes to higher accuracy. A run with show shortcuts on, or with no rate, never sets a best, but its per-neume tallies still add to the all-time totals.
 - **Weakest neumes:** all-time, ranked by error rate (errors / attempts), needing at least 3 attempts and at least one error, then errors desc, then id; top 5. Shown under the test when not empty.
 - **Results** show the best for the current drill and length, and "New best" when the run set it. A "Reset saved progress" button asks for confirmation, then clears the key.
-- Missing or throwing storage (private mode, quota) never breaks the game: progress then lives in memory only. Settings (drill, show shortcuts, length) are saved and restored on load; an unknown stored drill falls back to `all`, and an absent or invalid stored length to 20. Saving settings merges into the stored ones.
+- Missing or throwing storage (private mode, quota) never breaks the game: progress then lives in memory only. Settings (drill, show shortcuts, length, avoid repeats) are saved and restored on load; an unknown stored drill falls back to `all`, an absent or invalid stored length to 20, and an absent or invalid stored avoid-repeats value to off. Saving settings merges into the stored ones.
 
 ## 4. Chord input
 
@@ -166,6 +167,7 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 16. The hardest list ignores neumes with no errors, sorts by errors, then attempts, then id, and caps at 3. In a real browser a wrong key on a neume lists it with "1 error", and a clean run shows "No errors".
 17. Saved progress: parsing null, invalid JSON, a wrong shape and a future version gives empty progress, and a future version is never overwritten; a throwing or missing storage does not throw; the best follows the rules in section 3c (per drill and length, ties by accuracy, never from practice runs or a null rate); the weakest list needs 3 attempts. In a real browser the best, the weakest panel and the settings survive a reload, corrupt storage does not break the page, and reset clears the panel.
 18. Appendix B: every row matches the keymap; only row 82 is `unverified` and it is never drawn; the default `all` drill is exactly the 61 quantity entries (so its chances and seeded draws are unchanged); the V drill has the 11 quality entries and the T drill the 17 drawable fthoras; in a real browser each V and T target is typed with its own shortcut and all 90 code point sequences render from the Neanes font. Human check, pending: the owner compares the 29 new glyphs with the guide's Symbol column.
+19. Avoid repeats: off gives exactly the previous draw for a fixed seed; on never puts the same id twice in a row over many seeds and all drills, draws each later position at c_j / (1 - c_prev), uses one `random()` per target, and persists across reload together with the drill and length.
 
 ## Appendix A: Characters of Quantity
 

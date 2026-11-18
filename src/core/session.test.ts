@@ -3,7 +3,8 @@ import { keymap, type KeymapEntry } from '../data/keymap';
 import { script } from '../test-utils/keyScript';
 import { drawPool, neumeChances } from './weights';
 import { seededRandom } from './random';
-import { createSession, LENGTH_OPTIONS, sampleTargets, TEST_LENGTH } from './session';
+import { drillPool, drills } from './drills';
+import { assertNoRepeatsPossible, createSession, LENGTH_OPTIONS, sampleTargets, TEST_LENGTH } from './session';
 
 const pool = drawPool(keymap.filter((e) => e.table === 'quantity'));
 const chances = neumeChances(pool);
@@ -521,3 +522,136 @@ describe('selectable test length', () => {
   });
 });
 
+describe('sampleTargets with noRepeats', () => {
+  // Golden draws captured from the code before the option existed.
+  const GOLDEN_ALL_SEED_1 = ["petastiApostrofos", "ison", "runningElafron", "oligonElafronApostrofos", "oligonElafron", "petastiIson", "chamili", "oligonIsonKentimata", "apostrofos", "leimma4", "isonApostrofos", "isonApostrofos", "oligon", "apostrofos", "oligonYpsiliRight", "oligon", "isonApostrofos", "ison", "apostrofos", "oligonIsonKentimata"];
+  const GOLDEN_D_SEED_42 = ["yporroi", "yporroi", "oligonYporroi", "petastiYporroi", "yporroi", "yporroi", "yporroi", "yporroi", "oligonYporroi", "yporroi", "yporroi", "oligonYporroi", "petastiYporroi", "yporroi", "yporroi", "yporroi", "petastiYporroi", "yporroi", "yporroi", "yporroi", "oligonYporroi", "yporroi", "yporroi", "yporroi", "yporroi", "yporroi", "yporroi", "petastiYporroi", "yporroi", "yporroi", "yporroi", "oligonYporroi", "yporroi", "petastiYporroi", "yporroi", "yporroi", "yporroi", "yporroi", "yporroi", "yporroi", "yporroi", "yporroi", "yporroi", "yporroi", "petastiYporroi", "oligonYporroi", "yporroi", "yporroi", "yporroi", "yporroi"];
+  const ids = (t: readonly { id: string }[]) => t.map((e) => e.id);
+  const adjacentRepeats = (t: readonly { id: string }[]) => t.some((e, i) => i > 0 && e.id === t[i - 1].id);
+  const quantity = keymap.filter((e) => e.table === 'quantity');
+
+  it('the D golden draw has an adjacent pair, so the on-tests below mean something', () => {
+    expect(GOLDEN_D_SEED_42.some((id, i) => i > 0 && id === GOLDEN_D_SEED_42[i - 1])).toBe(true);
+  });
+
+  it('off is identical to today for fixed seeds', () => {
+    for (const options of [undefined, { noRepeats: false }]) {
+      expect(ids(sampleTargets(seededRandom(1), drillPool('all'), 20, options))).toEqual(GOLDEN_ALL_SEED_1);
+      expect(ids(sampleTargets(seededRandom(42), drillPool('KeyD'), 50, options))).toEqual(GOLDEN_D_SEED_42);
+    }
+  });
+
+  it('on never repeats an id back to back, over many seeds and every drill', () => {
+    for (const drill of drills()) {
+      for (let seed = 1; seed <= 200; seed++) {
+        const t = sampleTargets(seededRandom(seed), drillPool(drill.id), 50, { noRepeats: true });
+        expect(t).toHaveLength(50);
+        expect(adjacentRepeats(t), `${drill.id} seed ${seed}`).toBe(false);
+      }
+    }
+  });
+
+  it('on: the first target equals the off draw for the same seed', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const on = sampleTargets(seededRandom(seed), drillPool('all'), 5, { noRepeats: true });
+      const off = sampleTargets(seededRandom(seed), drillPool('all'), 5);
+      expect(on[0].id).toBe(off[0].id);
+    }
+  });
+
+  it('on uses exactly one random() per target', () => {
+    let calls = 0;
+    const counted = () => {
+      calls++;
+      return seededRandom(7)();
+    };
+    sampleTargets(counted, drillPool('KeyD'), 50, { noRepeats: true });
+    expect(calls).toBe(50);
+  });
+
+  it('on: later positions follow the renormalised chances (exact edges)', () => {
+    const mk = (id: string, pitch: number): KeymapEntry => ({ ...keymap[0], id, pitch, frequency: 'common' });
+    const pool = [mk('a', 0), mk('b', 1), mk('c', 2)];
+    const [a, b] = neumeChances(pool);
+    const edge = b / (1 - a);
+    const draw = (second: number) => {
+      const values = [0, second];
+      let i = 0;
+      return ids(sampleTargets(() => values[i++], pool, 2, { noRepeats: true }));
+    };
+    expect(draw(0)).toEqual(['a', 'b']);
+    expect(draw(edge - 1e-9)).toEqual(['a', 'b']);
+    expect(draw(edge + 1e-9)).toEqual(['a', 'c']);
+    expect(draw(1 - 2 ** -53)).toEqual(['a', 'c']);
+  });
+
+  it('on: transitions from ison follow c_j / (1 - c_ison) over a large seeded sample', () => {
+    const n = 200_000;
+    const pool = drawPool(quantity);
+    const chances = neumeChances(pool);
+    const cIson = chances[pool.findIndex((e) => e.id === 'ison')];
+    const t = sampleTargets(seededRandom(12345), quantity, n, { noRepeats: true });
+    const next = new Map<string, number>();
+    let fromIson = 0;
+    for (let i = 0; i < n - 1; i++) {
+      if (t[i].id !== 'ison') continue;
+      fromIson++;
+      next.set(t[i + 1].id, (next.get(t[i + 1].id) ?? 0) + 1);
+    }
+    expect(next.get('ison') ?? 0).toBe(0);
+    pool.forEach((e, k) => {
+      if (e.id === 'ison') return;
+      const p = chances[k] / (1 - cIson);
+      const observed = (next.get(e.id) ?? 0) / fromIson;
+      expect(Math.abs(observed - p), e.id).toBeLessThan(5 * Math.sqrt((p * (1 - p)) / fromIson));
+    });
+  });
+
+  it('on: the rounding fallback never returns the previous entry', () => {
+    const t = sampleTargets(() => 1 - 2 ** -53, drillPool('all'), 10, { noRepeats: true });
+    expect(t.every((e) => e !== undefined)).toBe(true);
+    expect(adjacentRepeats(t)).toBe(false);
+  });
+
+  it('assertNoRepeatsPossible throws for a 1-entry pool when count > 1, and not when count is 1', () => {
+    const one = [keymap[0]];
+    expect(() => assertNoRepeatsPossible(one, 2)).toThrow('sampleTargets: noRepeats needs at least 2 drawable entries');
+    expect(() => assertNoRepeatsPossible(one, 1)).not.toThrow();
+    expect(() => sampleTargets(() => 0, one, 2, { noRepeats: true })).toThrow('noRepeats needs at least 2');
+    expect(sampleTargets(() => 0, one, 1, { noRepeats: true })).toHaveLength(1);
+    expect(sampleTargets(() => 0, one, 3)).toHaveLength(3); // off: repeats are fine
+  });
+});
+
+describe('a session with noRepeats', () => {
+  const adjacent = (t: readonly { id: string }[]) => t.some((e, i) => i > 0 && e.id === t[i - 1].id);
+
+  it('draws targets with no adjacent repeats, and state().noRepeats is true', () => {
+    const session = createSession({ random: seededRandom(42), now: () => 0, drillId: 'KeyD', length: 50, noRepeats: true });
+    expect(session.state().noRepeats).toBe(true);
+    expect(adjacent(session.state().targets)).toBe(false);
+  });
+
+  it('is off by default', () => {
+    expect(createSession({ random: () => 0, now: () => 0 }).state().noRepeats).toBe(false);
+  });
+
+  it('configure({ noRepeats: true }) restarts with no adjacent repeats', () => {
+    const session = createSession({ random: seededRandom(42), now: () => 0, drillId: 'KeyD', length: 50 });
+    session.handle({ type: 'down', code: 'KeyH' });
+    session.configure({ noRepeats: true });
+    expect(session.state()).toMatchObject({ noRepeats: true, attempts: 0, index: 0 });
+    expect(adjacent(session.state().targets)).toBe(false);
+  });
+
+  it('configure({ noRepeats: false }) goes back to the plain draw path', () => {
+    const session = createSession({ random: seededRandom(5), now: () => 0, drillId: 'KeyD', length: 50, noRepeats: true });
+    session.configure({ noRepeats: false }); // draws the next 50 values from the same stream, plainly
+    expect(session.state().noRepeats).toBe(false);
+    const replay = seededRandom(5);
+    for (let i = 0; i < 50; i++) replay(); // skip the first (noRepeats) draw
+    expect(session.state().targets.map((e) => e.id)).toEqual(
+      sampleTargets(replay, drillPool('KeyD'), 50).map((e) => e.id),
+    );
+  });
+});

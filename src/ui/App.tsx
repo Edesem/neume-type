@@ -69,6 +69,19 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
         >
           show
         </button>
+        <span>repeats</span>
+        <button
+          type="button"
+          data-testid="no-repeats"
+          aria-pressed={state.noRepeats}
+          title="Never the same neume twice in a row"
+          onClick={(e) => {
+            store.configure({ noRepeats: !state.noRepeats });
+            blurAfter(e);
+          }}
+        >
+          avoid
+        </button>
       </nav>
       {state.results ? (
         <ResultsView

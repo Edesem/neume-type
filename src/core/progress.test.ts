@@ -95,6 +95,45 @@ describe('settings.length', () => {
   });
 });
 
+describe('settings.noRepeats', () => {
+  const withValue = (noRepeats: unknown) =>
+    JSON.stringify({
+      version: 1,
+      settings: { drillId: 'KeyR', showShortcuts: true, length: 10, noRepeats },
+      bests: {},
+      neumes: {},
+    });
+
+  it('round-trips true', () => {
+    const p = { ...emptyProgress(), settings: { drillId: 'all', showShortcuts: false, noRepeats: true } };
+    expect(parseProgress(serializeProgress(p)).progress.settings.noRepeats).toBe(true);
+  });
+
+  it('absent means off: the empty settings have no key', () => {
+    expect('noRepeats' in emptyProgress().settings).toBe(false);
+  });
+
+  it('a non-boolean stored value is dropped, not corrupt, and the other settings are kept', () => {
+    for (const bad of ['yes', 1, null, {}]) {
+      const r = parseProgress(withValue(bad));
+      expect(r.corrupt, String(bad)).toBe(false);
+      expect(r.progress.settings.noRepeats).toBeUndefined();
+      expect(r.progress.settings).toEqual({ drillId: 'KeyR', showShortcuts: true, length: 10 });
+    }
+  });
+
+  it('a stored false is kept', () => {
+    expect(parseProgress(withValue(false)).progress.settings.noRepeats).toBe(false);
+  });
+
+  it('withSettings merges noRepeats and keeps length and drill', () => {
+    const p = { ...emptyProgress(), settings: { drillId: 'KeyR', showShortcuts: false, length: 50 } };
+    expect(withSettings(p, { noRepeats: true }).settings).toEqual({
+      drillId: 'KeyR', showShortcuts: false, length: 50, noRepeats: true,
+    });
+  });
+});
+
 describe('recordRun', () => {
   it('adds tallies to all-time totals', () => {
     const a = recordRun(emptyProgress(), run()).progress;
