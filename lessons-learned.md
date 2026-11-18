@@ -61,7 +61,7 @@ if (pool.length === 0) throw new Error('sampleTargets: no verified entries to dr
 ### Validation and configuration
 
 - The only external inputs are the URL parameters `?seed=N` and `?debug`. They are read in `src/main.tsx` and nowhere else.
-- There are no environment variables, network calls or stored data. Do not add any (`CLAUDE.md` guardrail).
+- No environment variables or network calls. Browser storage only through the saved-progress module (added in U12) (`CLAUDE.md` guardrail).
 - The dev server port is set in `vite.config.ts`. The Playwright server is set in `playwright.config.ts`. Pending fix, see AUDIT.md A1: Playwright must use a port different from the dev server's.
 
 ### Result formatting
@@ -112,7 +112,7 @@ await page.goto(`/?seed=${seed}`);
 ### State and layering
 
 6. Put every game fact in `src/core/session.ts`. The store and components hold no game state of their own. *Reason: duplicate state in two layers.* (A3)
-7. Do not import `react`, `react-dom` or anything from `src/ui` into `src/core` or `src/data`, and do not use `window` or `document` there. No lint rule catches this yet, so check your diff by hand. *Reason: the boundary is unenforced and a planned Vue rewrite depends on it.* (A17)
+7. Do not import `react`, `react-dom` or anything from `src/ui` into `src/core` or `src/data`, and do not use `window` or `document` there. No lint rule catches this yet, so check your diff by hand. *Reason: the boundary is unenforced and the core must stay framework-free.* (A17)
 8. Do not do work on every key press that only a debug view uses. *Reason: `lastKey` re-renders the app on every keydown, including ignored keys.* (A13)
 9. Read sizes from the data (`targets.length`, `keymap.length`, `TEST_LENGTH`). Do not type `20` or `61` into new logic or new tests. *Reason: the test length is fixed in four places in the session and in most spec files.* (A4)
 10. If a feature needs a key that is in `MODIFIERS` to score on its own, stop and ask the owner. `src/core/chord.ts` cannot express that today. *Reason: structural limit recorded in A4.* (A4)

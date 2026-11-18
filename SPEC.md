@@ -1,12 +1,14 @@
-# Neume Type: MVP spec
+# Neume Type: spec
 
-A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboard shortcuts. It is a throwaway prototype whose only job is to show whether the idea is fun enough to pursue. Playable beats polished.
+A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboard shortcuts. It started as a prototype and is now developed further; post-MVP goals are in `goals.md`.
 
 ## 1. Scope
 
 **In:** typing neumes, Neanes keybinds, errors for wrong input, speed and accuracy result, restart button. The 61 entries in the guide's Characters of Quantity table (Appendix A), including combinations.
 
-**Out:** qualitative characters, fthoras, accounts, online features, themes, modes, settings, saved history, per-neume stats, backend, database, analytics.
+**Out:** qualitative characters, fthoras, accounts, online features, themes, modes, settings, backend, database, analytics.
+
+**Storage and hosting:** browser storage for saved progress is allowed (U12). Static hosting is allowed with `OFL.txt` beside the font. Still out: accounts, backend, server database, analytics.
 
 ## 2. Open decisions (defaults apply unless the user changes them)
 
@@ -17,7 +19,7 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 1. On load or restart, draw 20 neumes at random with the weighted chances in section 3a, with replacement, from entries not marked `unverified`. Repeats are allowed. The random source is injectable for tests.
 2. The first undone neume is highlighted.
-3. Each **attempt** (section 4) is compared with the current neume. Correct: advance. Wrong: stay, count one error, flash the error colour.
+3. Each **attempt** (section 4) is compared with the current neume. Correct: advance. Wrong: stay, count one error, and show the current neume in the error colour until it is entered correctly (steady, not blinking).
 4. The clock starts at the first attempt, right or wrong. It stops at the attempt that correctly enters neume 20. Modifier presses alone do not start it.
 5. Results replace the test:
    - Total time = stop - start, shown in seconds to 2 decimals.

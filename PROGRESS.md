@@ -15,10 +15,10 @@
 - T12 (merged): weighted draw. `pitch` and `frequency` on all 61 keymap entries (transcribed from `docs/neume-weights.md` by script, values unchanged); `src/core/weights.ts` (`rawWeight`, `applyFloor`, `neumeChances`, constants `HALVING_FACTOR`, `UNCOMMON_MULTIPLIER`, `FIXED_WEIGHT`, `MIN_CHANCE`); `sampleTargets` draws from the cumulative chances. Doc test parses the markdown table and compares all 61 rows. Existing tests changed to the new spec: in `session.test.ts` the `rigged` helper now picks the middle of the named entry's chance slice (was an index over a uniform pool), and `maps the random range uniformly onto the pool, ends included` is renamed `maps the random range onto the pool in keymap order, ends included` with the same assertions. Mutation-checked: no floor, no uncommon multiplier, single-pass floor, changed pitch/class in the keymap, missing last-entry fallback, `<=` at a cumulative edge each fail tests. Ison 11.63%, Oligon, Petastē, Apostrophos and Ison and Apostrophos 5.82% each; 22 entries sit at the 0.25% floor.
 - T13 (merged): neume state colours. New `--neume-done: #f2f1ea` and `--neume-todo: #4a4c50` used only by `.neume[data-state]`; `--untyped`/`--done` unchanged for labels, stats and buttons. `e2e/look.spec.ts` asserts computed colours (failed first with done `rgb(209, 208, 197)`). Screenshots regenerated. Low contrast is the owner's explicit choice.
 - G1: committed AUDIT.md and lessons-learned.md
+- T11 done (2026-11-03): owner played it, checked all 61 glyphs against the guide's Symbol column (they look right), and judged it fun and worth turning into a more serious project. Second independent review of main at 404aa37 found no material problems.
 
 ## Next
-- T11 done (2026-11-03): owner played it, checked all 61 glyphs against the guide's Symbol column (they look right), and judged it fun and worth turning into a more serious project. Second independent review of main at 404aa37 found no material problems.
-- Owner is weighing a Vue rewrite. Measured: only `src/ui/App.tsx` and `src/main.tsx` (about 110 lines) import React; core, data, store, styles and all tests would carry over.
+- G7 decided 2026-11-18: stay on React.
 
 ## Dependencies
 - react, react-dom: UI.
@@ -35,3 +35,27 @@
 ## For the user to decide
 - T4 gap (decided, easy to change): SPEC says auto-repeat is "ignored" (R7) but R13 says modifier/scored keydowns are prevented. I return kind ignored with preventDefault true for repeats of modifier/scored keys (stops Firefox quick find on a held `/`), and false for repeats of unscored keys.
 - R2 (no timing) is satisfied by events carrying no timestamp; C8 is tested as S then L in sequence.
+
+## Owner decisions (2026-11-18)
+
+- G2: retire "throwaway prototype" framing. LIFT all three guardrails: saved history (browser storage) allowed, per-neume stats allowed, static hosting allowed (keep OFL.txt beside the font). Still no accounts, backend, database or analytics.
+- G7: stay on React. No Vue rewrite.
+- G8: a modifier key pressed alone scores on RELEASE, when no other key was pressed between its keydown and keyup; it counts as one attempt for that key's own neume. Then derive test length from targets.length; replace hard-coded 20 and 61 in tests with imported constants.
+- G9: keep the steady error colour; change SPEC.md wording to match (no flash).
+- G10: APPROVED to delete e2e/keypress.spec.ts, lastKey and src/core/keyLabel.ts (A13).
+- G13: source qualitative characters and fthoras shortcuts from the PUBLISHED Neanes shortcut table (online docs). Never read Neanes app source. Mark anything not verified `unverified`. Never guess.
+- G15: builder adds the defensive fix (clear letter modifiers on any keydown with metaKey set) with tests; owner confirms by hand later on a Mac. Record as open item.
+- G16: no code; record as open item in PROGRESS.md (owner runs playtest with 2-3 chanters).
+
+## Answers to plan's OWNER INPUT NEEDED (2026-11-18)
+1. G13 weights: ACCEPT default — pitch null, frequency 'fixed' (uniform within V/T drills); excluded from default 61-entry draw.
+2. T + M (U+E19B): leave `unverified`, never drawn until owner confirms.
+3. G13 typing: player types only the mark's shortcut (one attempt per target).
+4. G13 scope: Quality + Fthoras tables only; no Temporal Augmentation. ACCEPT.
+5. G11 drill grouping by modifier key (all, plain, R, S, D, F, B, then V, T). ACCEPT.
+6. G12 personal best: highest neumes/min per drill+length, ties to accuracy; 'show shortcuts' runs never set a best. ACCEPT.
+7. Hosting subpath: not decided now; no change needed until hosting.
+
+## Open items
+- G16: playtest with 2–3 chanters who use Neanes (owner runs it; no code). If hosted for it, note that the font is loaded from the absolute path `/fonts/Neanes.otf`, so the build works only at a domain root unless Vite `base` is set.
+- G15: manual macOS check pending (added in U15).
