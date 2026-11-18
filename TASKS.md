@@ -105,3 +105,85 @@ Owner request: typed neumes very bright, untyped neumes low contrast and close t
 - **Done when:** a Playwright test asserts the computed colours of a done and an untyped neume and that the stats text keeps `#646669`; screenshots regenerated; `npm run check` passes.
 - **Verified by:** Playwright, screenshot.
 - **Autonomous:** yes.
+
+## Post-MVP (goals.md)
+
+Tasks T14 to T26 come from the post-MVP plan (units U3 to U15). Each is one branch and PR.
+
+## T14. Tooling: Playwright port, type-check screenshots, build in check and CI
+
+Playwright uses its own port (5274) so a running dev server (5273) no longer blocks commits. `tsconfig.json` includes `e2e-screenshots` and config files. `npm run check` includes `npm run build`. CI gets a fifth `build` job that also checks `dist/fonts/Neanes.otf` and `dist/fonts/OFL.txt` exist.
+
+- **Done when:** `npm run check` passes and includes a build; with `npm run dev` running in another shell, `npm run e2e` passes; `npx tsc --noEmit --listFiles | grep e2e-screenshots` lists `capture.spec.ts`; CI shows five green jobs.
+
+## T15. Enforce the core boundary
+
+A lint rule keeps React, the DOM and `src/ui` out of `src/core` and `src/data`.
+
+- **Done when:** `npm run check` passes and CI is green.
+
+## T16. Store state, debug scaffolding, store listener tests
+
+One error flag in the store, remove the debug last-key label and `keyLabel.ts` (owner-approved deletion of `e2e/keypress.spec.ts` and the last-key assertions), and add store listener tests.
+
+- **Done when:** `npm run check` passes and CI is green; `grep -rn "lastWrong\|lastKey\|keyLabel\|hintVisible" src e2e e2e-screenshots` returns nothing.
+
+## T17. Core helpers: key names, draw pool, guards, unused exports
+
+One key-name map, one draw pool, and a throw on impossible input.
+
+- **Done when:** `npm run check` passes and CI is green; `grep -rn "Key(\[A-Z\])" src e2e` finds exactly one regex, in `shortcut.ts`; `grep -rn "'ShiftLeft'" src e2e` finds only `chord.ts`, `keyScript.ts`'s NAMES and tests; `grep -rn "status !== 'unverified'" src` finds only `drawPool`.
+
+## T18. Tidy the tests
+
+Shared e2e helpers, an honest restart timing test, repo-file paths.
+
+- **Done when:** `npm run check` passes and CI is green; `grep -n "const physical\|function typeChord" e2e/*.spec.ts` returns nothing; `npm run screenshots` passes.
+
+## T19. Styling convention
+
+Class-based styling and colour variables named by use.
+
+- **Done when:** `npm run check` passes and CI is green; `npm run screenshots` output is visually unchanged (do not commit identical PNGs).
+
+## T20. Derive test length from the targets
+
+`createSession` takes an optional `length` (default `TEST_LENGTH`); hard-coded 20 and 61 in tests become imported constants.
+
+- **Done when:** `npm run check` passes and CI is green; `grep -rnE "\b(20|19|61)\b" e2e src/core src/ui --include=*.ts --include=*.tsx` shows only the justified literals.
+
+## T21. A lone modifier scores on release
+
+A modifier key pressed alone scores on release when no other key was pressed between its keydown and keyup. It counts as one attempt for that key's own neume.
+
+- **Done when:** `npm run check` passes and CI is green; all of C1 to C22 are unchanged and pass.
+
+## T22. Practice mode, drills by modifier key, per-neume stats
+
+Show-shortcuts option, drills grouped by modifier key (all, plain, R, S, D, F, B, then V, T), per-neume stats for the run.
+
+- **Done when:** `npm run check` passes and CI is green; the feature is reachable without `?debug`; `npm run screenshots` is regenerated with a `practice.png`.
+
+## T23. Saved progress in the browser
+
+Personal bests and weakest neumes in `localStorage`, through `src/core/progress.ts` (schema) and `src/ui/progressStore.ts` (the only place that touches storage).
+
+- **Done when:** `npm run check` passes and CI is green; the feature is reachable without `?debug`; screenshots regenerated (results with best and hardest).
+
+## T24. Qualitative characters and fthoras
+
+Add the Quality and Fthora tables from the published Neanes shortcut table; anything not verified is marked `unverified`. V and T drills.
+
+- **Done when:** `npm run check` passes and CI is green; every seeded e2e from before still passes with seeds unchanged; V and T drills are reachable without `?debug`; a human glyph check against the guide's Symbol column is recorded as pending in `PROGRESS.md`.
+
+## T25. Test length 10, 20 or 50
+
+Player-chosen test length.
+
+- **Done when:** `npm run check` passes and CI is green; the feature is reachable; screenshots updated if the settings bar changed.
+
+## T26. macOS stuck-modifier defence
+
+Clear letter modifiers on any keydown with `metaKey` set (macOS drops keyups while Cmd is down). Shift is kept.
+
+- **Done when:** `npm run check` passes and CI is green; the open item (manual macOS check by the owner) is recorded in `PROGRESS.md`.

@@ -1,10 +1,12 @@
 # Neume Type
 
-Throwaway prototype: a Monkeytype-style typing drill for Byzantine neumes using Neanes shortcuts. `SPEC.md` defines behaviour, `TASKS.md` defines build order. Optimise for playable quickly.
+Neume Type is a Monkeytype-style typing drill for Byzantine neumes using Neanes shortcuts. It began as a prototype; the owner playtested it on 2026-11-03 and decided to develop it further. `SPEC.md` defines behaviour, `TASKS.md` defines build order, `goals.md` lists post-MVP goals. Read `lessons-learned.md` before writing code.
 
 ## Stack
 
 Vite, React, TypeScript, Vitest, Playwright, ESLint, Husky, GitHub Actions. Local only.
+
+UI framework decision (2026-11-18): stay on React; no Vue rewrite (G7).
 
 ## Commands
 
@@ -16,6 +18,8 @@ Vite, React, TypeScript, Vitest, Playwright, ESLint, Husky, GitHub Actions. Loca
 | Unit tests | `npm test` |
 | End-to-end tests | `npm run e2e` |
 | All checks | `npm run check` |
+| Production build | `npm run build` |
+| Regenerate screenshots | `npm run screenshots` (rewrites `docs/screenshots/`; not part of `check`) |
 
 Install Playwright browsers inside the project with `PLAYWRIGHT_BROWSERS_PATH=0` set, so nothing lands in the global cache.
 
@@ -26,6 +30,10 @@ Install Playwright browsers inside the project with `PLAYWRIGHT_BROWSERS_PATH=0`
 - `src/ui/`: thin React layer.
 - `public/fonts/`: `Neanes.otf` and `OFL.txt`.
 - `e2e/`: Playwright tests that send real key events to the running page.
+- `src/test-utils/`: unit test helpers.
+- `e2e-screenshots/`: capture script for `npm run screenshots`.
+- `docs/`: owner-checked tables and screenshots.
+- A new top-level TypeScript directory must also go into `tsconfig.json` `include`.
 
 ## Workflow
 
@@ -33,7 +41,7 @@ Install Playwright browsers inside the project with `PLAYWRIGHT_BROWSERS_PATH=0`
 - Use a structured git workflow: one branch and PR per task, conventional commits. Use the `structured-git-workflow` skill.
 - A task is done only when all checks pass (`npm run check`) and its done-condition in `TASKS.md` is met.
 - Update `PROGRESS.md` when finishing a task.
-- Every PR needs reviewer agent approval, recorded as a PR comment starting `REVIEW: APPROVED`. Only after that and green CI may the builder self-merge and delete the branch.
+- Every PR needs reviewer agent approval, recorded as a PR comment starting `REVIEW: APPROVED`. The builder opens the PR and stops. After the reviewer's approval comment and green CI, the PR is squash-merged and its branch deleted (in practice by the orchestrating main session; see `ORCHESTRATION_LOG.md`).
 - Scratch files go in the git-ignored `.scratch/`, never outside the project.
 
 ## Guardrails
@@ -41,7 +49,9 @@ Install Playwright browsers inside the project with `PLAYWRIGHT_BROWSERS_PATH=0`
 - Never delete, skip or weaken a test, or disable a lint rule, to pass a check. If a test seems wrong, stop and tell the user.
 - Chord detection, scoring and keymap logic are plain code with no UI dependency, with unit tests. The UI is a thin layer.
 - Add a dependency only when it clearly saves time, and list each one in `PROGRESS.md`.
-- No accounts, backend, database or analytics.
+- No accounts, backend, server-side database, network calls or analytics.
+- Saved history and per-neume stats are allowed, stored only in the browser (`localStorage`) and never sent anywhere.
+- Static hosting of the built site is allowed. Keep `OFL.txt` beside the font in the deployed files.
 - Don't touch anything outside the project directory.
 - Stop and ask before installing global tools or doing anything irreversible.
 - If blocked more than 3 attempts on a task, write down what was tried in `PROGRESS.md` and move on.
