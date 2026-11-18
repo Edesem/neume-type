@@ -1,8 +1,8 @@
 :root {
   --bg: #323437;
   --accent: #e2b714;
-  --untyped: #646669;
-  --done: #d1d0c5;
+  --text-muted: #646669;
+  --text-button: #d1d0c5;
   --neume-todo: #4a4c50;
   --neume-done: #f2f1ea;
   --error: #ca4754;
@@ -11,7 +11,7 @@
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--untyped);
+  color: var(--text-muted);
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
@@ -37,10 +37,10 @@ h1 {
 h2 {
   font-size: 1rem;
   font-weight: 400;
-  color: var(--untyped);
+  color: var(--text-muted);
 }
 
-[data-testid='row'] {
+.neume-row {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -48,6 +48,9 @@ h2 {
 }
 
 .neume {
+  font-family: 'Neanes', monospace;
+  font-size: 3rem;
+  line-height: 2.4;
   display: inline-block;
   min-width: 1.5em;
   padding: 0.25em 0.15em;
@@ -71,31 +74,31 @@ h2 {
   border-bottom-color: var(--error);
 }
 
-[data-testid='hint'] {
+.hint {
   margin: 0;
   color: var(--error);
 }
 
-[data-testid='done'] p {
+.results p {
   margin: 0.25rem 0;
-  color: var(--untyped);
+  color: var(--text-muted);
 }
-[data-testid='done'] span {
+.results span {
   color: var(--accent);
   font-size: 1.5rem;
 }
 
-button {
+.restart {
   font: inherit;
-  color: var(--done);
+  color: var(--text-button);
   background: transparent;
   border: 0;
   border-radius: 0.5rem;
   padding: 0.5rem 1.25rem;
   cursor: pointer;
 }
-button:hover,
-button:focus-visible {
-  background: var(--done);
+.restart:hover,
+.restart:focus-visible {
+  background: var(--text-button);
   color: var(--bg);
 }

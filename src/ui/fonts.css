@@ -3,9 +3,3 @@
   src: url('/fonts/Neanes.otf') format('opentype');
   font-display: block;
 }
-
-.neume {
-  font-family: 'Neanes', monospace;
-  font-size: 3rem;
-  line-height: 2.4;
-}
