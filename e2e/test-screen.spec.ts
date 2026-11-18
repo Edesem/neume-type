@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { currentIndex, currentTarget, typeChord } from './helpers';
+import { TEST_LENGTH } from '../src/core/session';
+import { keymap } from '../src/data/keymap';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/?seed=1');
@@ -29,7 +31,7 @@ test('exactly one key press counts as exactly one attempt', async ({ page }) => 
 
 test('the target trigger without its modifiers is an error', async ({ page }) => {
   // Find the first target that needs a modifier by playing through correctly.
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < TEST_LENGTH; i++) {
     const target = await currentTarget(page);
     if (target.modifiers.length > 0) {
       await page.keyboard.press(target.trigger);
@@ -44,13 +46,13 @@ test('the target trigger without its modifiers is an error', async ({ page }) =>
 
 test('plain, Shift and modifier chords each advance the highlight', async ({ page }) => {
   const seen = { plain: false, shift: false, modifier: false };
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < TEST_LENGTH; i++) {
     const target = await currentTarget(page);
     if (target.modifiers.length === 0) seen.plain = true;
     if (target.modifiers.includes('Shift')) seen.shift = true;
     if (target.modifiers.some((m) => m !== 'Shift')) seen.modifier = true;
     await typeChord(page, target);
-    if (i < 19) expect(await currentIndex(page)).toBe(i + 1);
+    if (i < TEST_LENGTH - 1) expect(await currentIndex(page)).toBe(i + 1);
   }
   expect(seen).toEqual({ plain: true, shift: true, modifier: true });
   await expect(page.getByTestId('done')).toBeVisible();
@@ -58,11 +60,11 @@ test('plain, Shift and modifier chords each advance the highlight', async ({ pag
 });
 
 test('without ?debug the glyph reference row is not shown', async ({ page }) => {
-  await expect(page.locator('[data-index]')).toHaveCount(20); // page has loaded
+  await expect(page.locator('[data-index]')).toHaveCount(TEST_LENGTH); // page has loaded
   await expect(page.locator('[data-testid^="glyph-"]')).toHaveCount(0);
 });
 
 test('with ?debug the glyph reference row is shown', async ({ page }) => {
   await page.goto('/?seed=1&debug');
-  await expect(page.locator('[data-testid^="glyph-"]')).toHaveCount(61);
+  await expect(page.locator('[data-testid^="glyph-"]')).toHaveCount(keymap.length);
 });

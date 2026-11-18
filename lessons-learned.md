@@ -112,7 +112,7 @@ await page.goto(`/?seed=${seed}`);
 6. Put every game fact in `src/core/session.ts`. The store and components hold no game state of their own. *Reason: duplicate state in two layers.* (A3)
 7. Do not import `react`, `react-dom` or anything from `src/ui` into `src/core` or `src/data`, and do not use `window` or `document` there. An ESLint rule in `eslint.config.js` enforces this (also bans `Math.random` and `Date.now` there), tested in `src/core/boundary.test.ts`. *Reason: the boundary is unenforced and the core must stay framework-free.* (A17)
 8. Do not do work on every key press that only a debug view uses. *Reason: `lastKey` re-renders the app on every keydown, including ignored keys.* (A13)
-9. Read sizes from the data (`targets.length`, `keymap.length`, `TEST_LENGTH`). Do not type `20` or `61` into new logic or new tests. *Reason: the test length is fixed in four places in the session and in most spec files.* (A4)
+9. Read sizes from the data (`targets.length`, `keymap.length`, `TEST_LENGTH`). Do not type `20` or `61` into new logic or new tests. *Reason: the test length was once typed into the session and most spec files; the session now derives it from `targets.length`.* (A4)
 10. If a feature needs a key that is in `MODIFIERS` to score on its own, stop and ask the owner. `src/core/chord.ts` cannot express that today. *Reason: structural limit recorded in A4.* (A4)
 
 ### Tests
