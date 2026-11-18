@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
 import type { KeymapEntry } from '../src/data/keymap';
+import { TEST_LENGTH } from '../src/core/session';
 import {
   advanceTo, counts, currentIndex, currentTarget, findSeed, targetsFor, typeChord,
 } from './helpers';
 
 test('criterion 5: a full run with one deliberate wrong chord has 20 correct of 21 attempts', async ({ page }) => {
   await page.goto('/?seed=1');
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < TEST_LENGTH; i++) {
     const target = await currentTarget(page); // read from data-neume-id, looked up in the keymap
     if (i === 7) {
       await page.keyboard.press('KeyH'); // deliberate wrong chord
@@ -58,7 +59,7 @@ test.describe('criterion 6: S tapped then L versus S held then L', () => {
 
 test.describe('two Ison targets in a row', () => {
   const isIson = (e: KeymapEntry) => e.id === 'ison';
-  const seed = findSeed((t) => t.some((e, i) => isIson(e) && i < 19 && isIson(t[i + 1])));
+  const seed = findSeed((t) => t.some((e, i) => isIson(e) && i < TEST_LENGTH - 1 && isIson(t[i + 1])));
   const at = targetsFor(seed).findIndex((e, i, t) => isIson(e) && isIson(t[i + 1]));
 
   test('C13: a held J auto-repeating does not answer the next J', async ({ page }) => {

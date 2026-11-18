@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { counts, currentIndex, currentTarget, typeChord } from './helpers';
+import { TEST_LENGTH } from '../src/core/session';
 
 /** Play all 20 neumes, with `wrongAt` listing indexes where one wrong key is pressed first. */
 async function playRun(page: Page, wrongAt: number[] = []) {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < TEST_LENGTH; i++) {
     const target = await currentTarget(page);
     if (wrongAt.includes(i)) await page.keyboard.press('KeyH');
     await typeChord(page, target);
@@ -49,7 +50,7 @@ test('criterion 8: restart after a run gives a new test with zeroed counts', asy
   await expect(page.getByTestId('done')).toHaveCount(0);
   expect(await counts(page)).toEqual({ attempts: 0, errors: 0 });
   expect(await currentIndex(page)).toBe(0);
-  await expect(page.locator('[data-index]')).toHaveCount(20);
+  await expect(page.locator('[data-index]')).toHaveCount(TEST_LENGTH);
 });
 
 test('criterion 8: restart during a test draws a new test and zeroes counts', async ({ page }) => {

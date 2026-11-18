@@ -17,13 +17,13 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 ## 3. Test flow
 
-1. On load or restart, draw 20 neumes at random with the weighted chances in section 3a, with replacement, from entries not marked `unverified`. Repeats are allowed. The random source is injectable for tests.
+1. On load or restart, draw the test length (default 20) of neumes at random with the weighted chances in section 3a, with replacement, from entries not marked `unverified`. Repeats are allowed. The random source is injectable for tests.
 2. The first undone neume is highlighted.
 3. Each **attempt** (section 4) is compared with the current neume. Correct: advance. Wrong: stay, count one error, and show the current neume in the error colour until it is entered correctly (steady, not blinking).
-4. The clock starts at the first attempt, right or wrong. It stops at the attempt that correctly enters neume 20. Modifier presses alone do not start it.
+4. The clock starts at the first attempt, right or wrong. It stops at the attempt that correctly enters the last neume of the test. Modifier presses alone do not start it.
 5. Results replace the test:
    - Total time = stop - start, shown in seconds to 2 decimals.
-   - Neumes per minute = 20 / (time in minutes), to 1 decimal.
+   - Neumes per minute = test length / (time in minutes), to 1 decimal.
    - Accuracy = correct attempts / total attempts, as a percentage to 1 decimal.
    - Example: 40,000 ms with 5 errors gives 40.00 s, 30.0 per minute, 80.0% (20/25).
 6. The restart button is visible during the test and on results. It draws a new test and resets clock and counts. Attempts on the results screen are ignored.

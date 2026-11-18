@@ -107,7 +107,7 @@ describe('R15 restart', () => {
 
   it('draws a new test', () => {
     let n = 0;
-    const session = createSession({ random: () => (n++ % 61) / 61, now: () => 0 });
+    const session = createSession({ random: () => (n++ % pool.length) / pool.length, now: () => 0 });
     const first = session.state().targets.map((t) => t.id);
     session.restart();
     const second = session.state().targets.map((t) => t.id);
@@ -152,8 +152,8 @@ describe('criterion 4: scoring', () => {
     const session = createSession({ random: () => 0, now: c.now }); // all targets are J
     c.set(1000);
     for (let i = 0; i < errors; i++) session.handle({ type: 'down', code: 'KeyH' });
-    for (let i = 0; i < 20; i++) {
-      c.set(i === 19 ? 41000 : 1000 + i * 1000);
+    for (let i = 0; i < TEST_LENGTH; i++) {
+      c.set(i === TEST_LENGTH - 1 ? 41000 : 1000 + i * 1000);
       session.handle({ type: 'down', code: 'KeyJ' });
       session.handle({ type: 'up', code: 'KeyJ' });
     }
@@ -171,8 +171,8 @@ describe('criterion 4: scoring', () => {
     const session = createSession({ random: () => 0, now: c.now });
     c.set(0);
     session.handle({ type: 'down', code: 'KeyH' });
-    for (let i = 0; i < 20; i++) {
-      c.set(i === 19 ? 33333 : 100);
+    for (let i = 0; i < TEST_LENGTH; i++) {
+      c.set(i === TEST_LENGTH - 1 ? 33333 : 100);
       session.handle({ type: 'down', code: 'KeyJ' });
       session.handle({ type: 'up', code: 'KeyJ' });
     }
@@ -187,8 +187,8 @@ describe('criterion 4: scoring', () => {
       c.set(0);
       session.handle({ type: 'down', code: 'KeyJ' });
       session.handle({ type: 'up', code: 'KeyJ' });
-      for (let i = 1; i < 20; i++) {
-        c.set(i === 19 ? ms : 1);
+      for (let i = 1; i < TEST_LENGTH; i++) {
+        c.set(i === TEST_LENGTH - 1 ? ms : 1);
         session.handle({ type: 'down', code: 'KeyJ' });
         session.handle({ type: 'up', code: 'KeyJ' });
       }
@@ -200,7 +200,7 @@ describe('criterion 4: scoring', () => {
 
   it('gives a null rate, not Infinity or NaN, when the run took zero time', () => {
     const session = createSession({ random: () => 0, now: () => 5 }); // frozen clock
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < TEST_LENGTH; i++) {
       session.handle({ type: 'down', code: 'KeyJ' });
       session.handle({ type: 'up', code: 'KeyJ' });
     }
@@ -270,3 +270,51 @@ describe('D1 hint', () => {
     expect(session.state().lastAttemptWrong).toBe(false);
   });
 });
+
+describe('test length comes from the targets', () => {
+  const press = (session: ReturnType<typeof createSession>, code: string) => {
+    session.handle({ type: 'down', code });
+    session.handle({ type: 'up', code });
+  };
+  const run = (length: number, errors: number) => {
+    const c = clock();
+    const session = createSession({ random: () => 0, now: c.now, length }); // all targets are J
+    for (let i = 0; i < errors; i++) press(session, 'KeyH');
+    for (let i = 0; i < length; i++) {
+      c.set(i === length - 1 ? 30000 : 0);
+      press(session, 'KeyJ');
+    }
+    return session;
+  };
+
+  it('a session of length 5 is done after 5 correct attempts and rates by 5', () => {
+    const session = run(5, 0);
+    expect(session.state().targets).toHaveLength(5);
+    expect(session.state()).toMatchObject({ done: true, index: 5 });
+    expect(session.state().results).toEqual({ totalSeconds: 30, neumesPerMinute: 10, accuracyPercent: 100 });
+  });
+
+  it('accuracy uses targets.length', () => {
+    expect(run(5, 1).state().results?.accuracyPercent).toBe(83.3);
+  });
+
+  it('attempts after the last of 5 targets are ignored', () => {
+    const session = run(5, 0);
+    press(session, 'KeyH');
+    press(session, 'KeyJ');
+    expect(session.state()).toMatchObject({ attempts: 5, errors: 0, index: 5 });
+  });
+
+  it('restart keeps the length', () => {
+    const session = run(5, 0);
+    session.restart();
+    expect(session.state().targets).toHaveLength(5);
+  });
+
+  it('createSession throws on a length that is not a positive integer', () => {
+    for (const length of [0, -1, 2.5]) {
+      expect(() => createSession({ random: () => 0, now: () => 0, length })).toThrow(/length/);
+    }
+  });
+});
+

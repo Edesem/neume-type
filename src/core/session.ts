@@ -15,7 +15,7 @@ export interface Results {
 
 export interface SessionState {
   targets: readonly KeymapEntry[];
-  /** Index of the current neume; equals TEST_LENGTH when done. */
+  /** Index of the current neume; equals targets.length when done. */
   index: number;
   errors: number;
   attempts: number;
@@ -32,6 +32,8 @@ export interface SessionOptions {
   random: () => number;
   /** Returns the current time in ms. */
   now: () => number;
+  /** Number of neumes in a test (default TEST_LENGTH). */
+  length?: number;
 }
 
 /**
@@ -61,7 +63,8 @@ const round = (value: number, decimals: number) => {
 };
 
 export function createSession(options: SessionOptions) {
-  const { random, now } = options;
+  const { random, now, length = TEST_LENGTH } = options;
+  if (!Number.isInteger(length) || length < 1) throw new Error(`createSession: length must be a positive integer, got ${length}`);
   const tracker = createChordTracker();
 
   let targets: readonly KeymapEntry[] = [];
@@ -74,7 +77,7 @@ export function createSession(options: SessionOptions) {
 
   const restart = () => {
     // R15: the tracker's held set is left alone because keys are physically still down.
-    targets = sampleTargets(random);
+    targets = sampleTargets(random, keymap, length);
     index = 0;
     errors = 0;
     attempts = 0;
@@ -85,14 +88,14 @@ export function createSession(options: SessionOptions) {
   restart();
 
   const state = (): SessionState => {
-    const done = index >= TEST_LENGTH;
+    const done = index >= targets.length;
     let results: Results | null = null;
     if (done && startedAt !== null && endedAt !== null) {
       const ms = endedAt - startedAt;
       results = {
         totalSeconds: round(ms / 1000, 2),
-        neumesPerMinute: ms > 0 ? round(TEST_LENGTH / (ms / 60000), 1) : null,
-        accuracyPercent: round((TEST_LENGTH / attempts) * 100, 1),
+        neumesPerMinute: ms > 0 ? round(targets.length / (ms / 60000), 1) : null,
+        accuracyPercent: round((targets.length / attempts) * 100, 1),
       };
     }
     return { targets, index, errors, attempts, startedAt, endedAt, lastAttemptWrong, done, results };
@@ -105,7 +108,7 @@ export function createSession(options: SessionOptions) {
     handle(event: KeyEventLike): ChordResult {
       const result = tracker.handle(event);
       // Attempts on the results screen are ignored; the tracker still sees the keys.
-      if (result.kind !== 'attempt' || index >= TEST_LENGTH) return result;
+      if (result.kind !== 'attempt' || index >= targets.length) return result;
 
       const time = now();
       if (startedAt === null) startedAt = time;
@@ -113,7 +116,7 @@ export function createSession(options: SessionOptions) {
       if (attemptMatches(result, targets[index])) {
         index++;
         lastAttemptWrong = false;
-        if (index >= TEST_LENGTH) endedAt = time;
+        if (index >= targets.length) endedAt = time;
       } else {
         errors++;
         lastAttemptWrong = true;
