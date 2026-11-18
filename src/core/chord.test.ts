@@ -273,3 +273,33 @@ describe('C23 to C29: a lone modifier scores on release (solo entry for B, test 
   });
 });
 
+describe('G15: macOS drops keyups while Cmd is down', () => {
+  const lastAttempt = (steps: string[]) => {
+    const attempts = run(steps).filter((r) => r.kind === 'attempt');
+    const a = attempts[attempts.length - 1];
+    if (!a || a.kind !== 'attempt') throw new Error('no attempt');
+    return a;
+  };
+
+  it('G15: S held, Cmd pressed, S keyup lost, Cmd released, then L is judged L', () => {
+    expect(lastAttempt(['↓S', '↓Meta', '↑Meta', '↓L'])).toMatchObject({ trigger: 'KeyL', modifiers: [] });
+  });
+
+  it('G15: the stuck-key fix works for any letter modifier, including two at once', () => {
+    expect(lastAttempt(['↓S', '↓R', '↓Meta', '↑Meta', '↓K'])).toMatchObject({ trigger: 'KeyK', modifiers: [] });
+  });
+
+  it('G15: Shift survives a Cmd keydown', () => {
+    expect(lastAttempt(['↓Shift', '↓Meta', '↑Meta', '↓K'])).toMatchObject({ trigger: 'KeyK', modifiers: ['Shift'] });
+  });
+
+  it('G15: a letter pressed after Cmd is released is held normally', () => {
+    expect(lastAttempt(['↓S', '↓Meta', '↑Meta', '↓S', '↓L'])).toMatchObject({ trigger: 'KeyL', modifiers: ['KeyS'] });
+  });
+
+  it('C17 still: Meta+J is ignored and not prevented', () => {
+    const results = run(['↓Meta', '↓J']);
+    expect(results.every((r) => r.kind === 'ignored' && !r.preventDefault)).toBe(true);
+  });
+});
+

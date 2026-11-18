@@ -86,7 +86,7 @@ Neanes says shortcuts use "the physical key positions of a US keyboard layout" a
 | R11 | Unscored keys | Space, Enter, Tab, Escape, arrows, function keys and Caps Lock are ignored and not prevented. |
 | R12 | Browser combinations | While Ctrl, Meta or Alt is down, keydowns are ignored and not prevented, so Cmd+R and Ctrl+W work. No quantity shortcut uses these keys. |
 | R13 | Browser defaults | Modifier and scored keydowns otherwise call `preventDefault`. This stops Firefox quick find on `/` and `'`. There is no text input, so the macOS accent popup does not apply. |
-| R14 | Lost keyups | On window `blur` or hidden `visibilitychange`, clear the held set. On each keydown, sync Shift from `event.shiftKey`. A keyup for a key not held is ignored. Events with `isComposing` are ignored. |
+| R14 | Lost keyups | On window `blur` or hidden `visibilitychange`, clear the held set. On each keydown, sync Shift from `event.shiftKey`. On any keydown with `metaKey` set, clear every held key except Shift (macOS drops keyups while Cmd is down). A keyup for a key not held is ignored. Events with `isComposing` are ignored. |
 | R15 | Restart | Clears the session, not the held set, because the keys are physically still down. |
 
 ### Worked examples
@@ -129,6 +129,10 @@ With a solo entry for `B` (test data only, no keymap entry has a modifier trigge
 | C27 | `B` | ↓Shift ↓B ↑B | 1 error: judged as `Shift + B` |
 | C28 | `B` | ↓B ↓Meta ↑B | nothing |
 | C29 | `B` | ↓Shift ↓B ↑Shift ↑B | correct: Shift was already released at the release |
+
+| # | Target | Keys | Result |
+|---|---|---|---|
+| C30 | `L` | ↓S ↓Meta ↑Meta ↓L (the S keyup is lost) | correct: the Cmd keydown cleared S, so L is judged alone (R14); Shift would have been kept |
 
 ## 5. Rendering
 

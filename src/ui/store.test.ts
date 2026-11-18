@@ -171,4 +171,15 @@ describe('game store', () => {
     expect(calls).toBe(2);
     expect(store.getSnapshot().state.drillId).toBe('KeyS');
   });
+
+  it('a keydown with metaKey clears a held letter modifier', () => {
+    const store = make(); // every target is J
+    const win = new EventTarget();
+    store.attach(win);
+    down(win, 'KeyS');
+    down(win, 'MetaLeft', { metaKey: true });
+    win.dispatchEvent(keyEvent('keyup', 'MetaLeft').ev); // the S keyup was lost by the OS
+    down(win, 'KeyJ');
+    expect(store.getSnapshot().state).toMatchObject({ attempts: 1, errors: 0, index: 1 });
+  });
 });
