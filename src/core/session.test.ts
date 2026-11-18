@@ -424,3 +424,55 @@ describe('practice options', () => {
   });
 });
 
+describe('onComplete', () => {
+  const press = (session: ReturnType<typeof createSession>, code: string) => {
+    session.handle({ type: 'down', code });
+    session.handle({ type: 'up', code });
+  };
+
+  it('is called once with results and tallies at the completing attempt', () => {
+    const runs: unknown[] = [];
+    const c = clock();
+    const session = createSession({ random: () => 0, now: c.now, length: 2, onComplete: (r) => runs.push(r) });
+    c.set(0);
+    press(session, 'KeyH');
+    press(session, 'KeyJ');
+    expect(runs).toHaveLength(0);
+    c.set(60000);
+    press(session, 'KeyJ');
+    expect(runs).toEqual([
+      {
+        drillId: 'all',
+        length: 2,
+        practice: false,
+        results: { totalSeconds: 60, neumesPerMinute: 2, accuracyPercent: 66.7 },
+        tallies: { ison: { attempts: 3, errors: 1 } },
+      },
+    ]);
+  });
+
+  it('reports practice when shortcuts are on', () => {
+    const runs: { practice: boolean }[] = [];
+    const session = createSession({ random: () => 0, now: () => 0, length: 1, showShortcuts: true, onComplete: (r) => runs.push(r) });
+    press(session, 'KeyJ');
+    expect(runs[0].practice).toBe(true);
+  });
+
+  it('is not called on restart', () => {
+    let calls = 0;
+    const session = createSession({ random: () => 0, now: () => 0, length: 1, onComplete: () => calls++ });
+    session.restart();
+    session.configure({ showShortcuts: true });
+    expect(calls).toBe(0);
+  });
+
+  it('is not called again by keys on the results screen', () => {
+    let calls = 0;
+    const session = createSession({ random: () => 0, now: () => 0, length: 1, onComplete: () => calls++ });
+    press(session, 'KeyJ');
+    press(session, 'KeyJ');
+    press(session, 'KeyH');
+    expect(calls).toBe(1);
+  });
+});
+

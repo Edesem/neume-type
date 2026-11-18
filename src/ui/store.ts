@@ -19,7 +19,12 @@ interface KeyboardEventLike extends Event {
  * Holds the one session and tracker for the page. Thin glue: it forwards events to core,
  * applies the returned preventDefault, and exposes a snapshot for React.
  */
-export function createGameStore(options: SessionOptions) {
+export interface GameStoreOptions extends SessionOptions {
+  /** Called after `configure` with the settings now in effect (used to save them). */
+  onConfigure?: (settings: { drillId: string; showShortcuts: boolean }) => void;
+}
+
+export function createGameStore(options: GameStoreOptions) {
   const session = createSession(options);
   const listeners = new Set<() => void>();
   let snapshot: Snapshot = { state: session.state() };
@@ -48,6 +53,8 @@ export function createGameStore(options: SessionOptions) {
     getSnapshot: () => snapshot,
     configure(patch: Parameters<typeof session.configure>[0]) {
       session.configure(patch);
+      const { drillId, showShortcuts } = session.state();
+      options.onConfigure?.({ drillId, showShortcuts });
       publish();
     },
     restart() {
