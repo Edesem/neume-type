@@ -32,6 +32,8 @@ describe('keymap data', () => {
     ]);
   });
 
+  // Criterion 1. Adding Haplē-style data (a modifier as trigger) needs the owner's approval and a
+  // change to this criterion; the chord tracker already supports solo triggers (SPEC R6).
   it('never uses a modifier as a trigger, and every modifier used is listed', () => {
     for (const e of keymap) {
       expect(MODIFIERS).not.toContain(e.trigger);

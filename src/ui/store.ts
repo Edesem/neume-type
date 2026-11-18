@@ -1,5 +1,5 @@
 import type { KeyEventLike } from '../core/chord';
-import { createSession, type SessionState } from '../core/session';
+import { createSession, type SessionOptions, type SessionState } from '../core/session';
 
 export interface Snapshot {
   state: SessionState;
@@ -19,7 +19,7 @@ interface KeyboardEventLike extends Event {
  * Holds the one session and tracker for the page. Thin glue: it forwards events to core,
  * applies the returned preventDefault, and exposes a snapshot for React.
  */
-export function createGameStore(options: { random: () => number; now: () => number }) {
+export function createGameStore(options: SessionOptions) {
   const session = createSession(options);
   const listeners = new Set<() => void>();
   let snapshot: Snapshot = { state: session.state() };
@@ -59,7 +59,8 @@ export function createGameStore(options: { random: () => number; now: () => numb
         if (result.kind === 'attempt') publish(); // only attempts change session state
       };
       const onUp = (ev: Event) => {
-        session.handle(toEvent('up', ev as KeyboardEventLike));
+        // A lone modifier scores on release, so a keyup can produce an attempt.
+        if (session.handle(toEvent('up', ev as KeyboardEventLike)).kind === 'attempt') publish();
       };
       const onBlur = () => session.blur();
       const onVisibility = () => {

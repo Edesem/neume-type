@@ -318,3 +318,30 @@ describe('test length comes from the targets', () => {
   });
 });
 
+describe('a solo modifier attempt on release', () => {
+  const soloTriggers = new Set(['KeyB']);
+  const haplo = (c: ReturnType<typeof clock>) => {
+    // The draw is all J (no keymap entry has B alone yet), so a solo B is judged against J.
+    return createSession({ random: () => 0, now: c.now, soloTriggers });
+  };
+
+  it('a solo B on a J target is one error and starts the clock on release', () => {
+    const c = clock();
+    const session = haplo(c);
+    c.set(500);
+    session.handle({ type: 'down', code: 'KeyB' });
+    expect(session.state()).toMatchObject({ attempts: 0, startedAt: null });
+    session.handle({ type: 'up', code: 'KeyB' });
+    expect(session.state()).toMatchObject({ attempts: 1, errors: 1, index: 0, startedAt: 500 });
+  });
+
+  it('B held then J is judged B + J, and the release adds nothing', () => {
+    const session = haplo(clock());
+    session.handle({ type: 'down', code: 'KeyB' });
+    session.handle({ type: 'down', code: 'KeyJ' });
+    session.handle({ type: 'up', code: 'KeyJ' });
+    session.handle({ type: 'up', code: 'KeyB' });
+    expect(session.state()).toMatchObject({ attempts: 1, errors: 1 });
+  });
+});
+

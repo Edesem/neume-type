@@ -113,7 +113,7 @@ await page.goto(`/?seed=${seed}`);
 7. Do not import `react`, `react-dom` or anything from `src/ui` into `src/core` or `src/data`, and do not use `window` or `document` there. An ESLint rule in `eslint.config.js` enforces this (also bans `Math.random` and `Date.now` there), tested in `src/core/boundary.test.ts`. *Reason: the boundary is unenforced and the core must stay framework-free.* (A17)
 8. Do not do work on every key press that only a debug view uses. *Reason: `lastKey` re-renders the app on every keydown, including ignored keys.* (A13)
 9. Read sizes from the data (`targets.length`, `keymap.length`, `TEST_LENGTH`). Do not type `20` or `61` into new logic or new tests. *Reason: the test length was once typed into the session and most spec files; the session now derives it from `targets.length`.* (A4)
-10. If a feature needs a key that is in `MODIFIERS` to score on its own, stop and ask the owner. `src/core/chord.ts` cannot express that today. *Reason: structural limit recorded in A4.* (A4)
+10. A key in `MODIFIERS` can now score on its own (it fires on release, see SPEC R6 and `SOLO_TRIGGERS` in `src/core/chord.ts`), but adding a keymap entry whose trigger is a modifier still needs the owner's approval, because SPEC criterion 1 says no entry does. *Reason: A4.* (A4)
 
 ### Tests
 

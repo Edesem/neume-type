@@ -34,6 +34,8 @@ export interface SessionOptions {
   now: () => number;
   /** Number of neumes in a test (default TEST_LENGTH). */
   length?: number;
+  /** Modifier keys that score alone on release; defaults to the keymap's (none today). */
+  soloTriggers?: ReadonlySet<string>;
 }
 
 /**
@@ -63,9 +65,9 @@ const round = (value: number, decimals: number) => {
 };
 
 export function createSession(options: SessionOptions) {
-  const { random, now, length = TEST_LENGTH } = options;
+  const { random, now, length = TEST_LENGTH, soloTriggers } = options;
   if (!Number.isInteger(length) || length < 1) throw new Error(`createSession: length must be a positive integer, got ${length}`);
-  const tracker = createChordTracker();
+  const tracker = createChordTracker(soloTriggers);
 
   let targets: readonly KeymapEntry[] = [];
   let index = 0;

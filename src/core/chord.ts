@@ -1,4 +1,4 @@
-import { MODIFIERS, type KeymapEntry } from '../data/keymap';
+import { keymap, MODIFIERS, type KeymapEntry } from '../data/keymap';
 
 /** The subset of a keyboard event the tracker needs. Plain data, no DOM types. */
 export interface KeyEventLike {
@@ -52,8 +52,15 @@ function modifierOf(code: string): string | undefined {
 
 const ignored: ChordResult = { kind: 'ignored', preventDefault: false };
 
-export function createChordTracker(): ChordTracker {
+/** Modifier keys that are the trigger of some keymap entry. Empty today (SPEC criterion 1). */
+export const SOLO_TRIGGERS: ReadonlySet<string> = new Set(
+  keymap.filter((e) => MODIFIERS.includes(e.trigger)).map((e) => e.trigger),
+);
+
+export function createChordTracker(soloTriggers: ReadonlySet<string> = SOLO_TRIGGERS): ChordTracker {
   const held = new Set<string>();
+  /** A solo-trigger modifier that went down and has seen no other fresh keydown since. */
+  let solo: string | null = null;
 
   const heldModifiers = (): string[] => {
     const mods = new Set<string>();
@@ -67,15 +74,25 @@ export function createChordTracker(): ChordTracker {
   return {
     blur() {
       held.clear();
+      solo = null;
     },
 
     handle(e) {
       if (e.isComposing) return ignored;
 
       if (e.type === 'up') {
+        const fire = solo === e.code;
         held.delete(e.code);
+        if (fire) {
+          // R6: a lone modifier scores on release; modifiers are those still held now.
+          solo = null;
+          return { kind: 'attempt', preventDefault: false, trigger: e.code, modifiers: heldModifiers() };
+        }
         return ignored;
       }
+
+      // Any fresh keydown (auto-repeats excepted) cancels a solo candidate.
+      if (!e.repeat) solo = null;
 
       // R14: resync Shift from the event.
       if (e.shiftKey === false) SHIFT_CODES.forEach((c) => held.delete(c));
@@ -94,7 +111,10 @@ export function createChordTracker(): ChordTracker {
       if (e.repeat) return { kind: 'ignored', preventDefault: true };
 
       held.add(e.code);
-      if (isModifier) return { kind: 'held', preventDefault: true };
+      if (isModifier) {
+        if (soloTriggers.has(e.code)) solo = e.code;
+        return { kind: 'held', preventDefault: true };
+      }
 
       return {
         kind: 'attempt',
