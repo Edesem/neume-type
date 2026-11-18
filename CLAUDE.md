@@ -17,9 +17,11 @@ UI framework decision (2026-11-18): stay on React; no Vue rewrite (G7).
 | Lint | `npm run lint` |
 | Unit tests | `npm test` |
 | End-to-end tests | `npm run e2e` |
-| All checks | `npm run check` |
+| All checks | `npm run check` (typecheck, lint, unit tests, build, e2e) |
 | Production build | `npm run build` |
 | Regenerate screenshots | `npm run screenshots` (rewrites `docs/screenshots/`; not part of `check`) |
+
+Dev uses port 5273 and Playwright uses port 5275, so a running dev server does not block commits.
 
 Install Playwright browsers inside the project with `PLAYWRIGHT_BROWSERS_PATH=0` set, so nothing lands in the global cache.
 

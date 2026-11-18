@@ -16,6 +16,7 @@
 - T13 (merged): neume state colours. New `--neume-done: #f2f1ea` and `--neume-todo: #4a4c50` used only by `.neume[data-state]`; `--untyped`/`--done` unchanged for labels, stats and buttons. `e2e/look.spec.ts` asserts computed colours (failed first with done `rgb(209, 208, 197)`). Screenshots regenerated. Low contrast is the owner's explicit choice.
 - G1: committed AUDIT.md and lessons-learned.md
 - T11 done (2026-11-03): owner played it, checked all 61 glyphs against the guide's Symbol column (they look right), and judged it fun and worth turning into a more serious project. Second independent review of main at 404aa37 found no material problems.
+- T14 (G3): Playwright on its own port 5275 (`E2E_PORT`), `e2e-screenshots` and config files type-checked, `npm run build` in `check`, CI `build` job that also asserts `dist/fonts/Neanes.otf` and `OFL.txt`. `src/data/tooling.test.ts` covers port, baseURL and the check script. No dependencies added.
 
 ## Next
 - G7 decided 2026-11-18: stay on React.
@@ -30,7 +31,7 @@
 - husky: pre-commit hook.
 
 ## Notes
-- Dev server uses port 5273 (strict); 5173 was taken by another local process. Playwright never reuses an existing server.
+- Dev server uses port 5273 (strict); 5173 was taken by another local process. Playwright uses its own port 5275 and never reuses an existing server, so a running dev server does not block `npm run e2e` or the commit hook.
 
 ## For the user to decide
 - T4 gap (decided, easy to change): SPEC says auto-repeat is "ignored" (R7) but R13 says modifier/scored keydowns are prevented. I return kind ignored with preventDefault true for repeats of modifier/scored keys (stops Firefox quick find on a held `/`), and false for repeats of unscored keys.
