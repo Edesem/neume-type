@@ -1,0 +1,160 @@
+import { describe, expect, it } from 'vitest';
+import {
+  bestKey,
+  emptyProgress,
+  parseProgress,
+  PROGRESS_VERSION,
+  recordRun,
+  serializeProgress,
+  weakest,
+  type Progress,
+  type RunSummary,
+} from './progress';
+
+const run = (over: Partial<RunSummary> = {}): RunSummary => ({
+  drillId: 'all',
+  length: 20,
+  practice: false,
+  results: { totalSeconds: 40, neumesPerMinute: 30, accuracyPercent: 80 },
+  tallies: { ison: { attempts: 3, errors: 1 } },
+  date: '2026-11-18T10:00:00.000Z',
+  ...over,
+});
+
+describe('parseProgress', () => {
+  it('null gives empty progress, writable', () => {
+    expect(parseProgress(null)).toEqual({ progress: emptyProgress(), writable: true, corrupt: false });
+  });
+
+  it('invalid JSON gives empty, writable, corrupt', () => {
+    expect(parseProgress('{')).toEqual({ progress: emptyProgress(), writable: true, corrupt: true });
+  });
+
+  it('a wrong shape gives empty, writable, corrupt', () => {
+    for (const text of ['[]', '42', 'null', '{"version":1}', '{"version":1,"settings":{},"bests":{},"neumes":{}}']) {
+      const r = parseProgress(text);
+      expect(r.corrupt, text).toBe(true);
+      expect(r.progress).toEqual(emptyProgress());
+      expect(r.writable).toBe(true);
+    }
+  });
+
+  it('a future version gives empty, not writable, not corrupt', () => {
+    const text = JSON.stringify({ version: PROGRESS_VERSION + 1, anything: true });
+    expect(parseProgress(text)).toEqual({ progress: emptyProgress(), writable: false, corrupt: false });
+  });
+
+  it('keeps unknown neume and drill ids', () => {
+    const p: Progress = {
+      ...emptyProgress(),
+      neumes: { futureNeume: { attempts: 5, errors: 2 } },
+      bests: { 'futureDrill:20': { neumesPerMinute: 10, accuracyPercent: 90, totalSeconds: 5, date: 'd' } },
+    };
+    expect(parseProgress(serializeProgress(p)).progress).toEqual(p);
+  });
+
+  it('a missing optional length is fine', () => {
+    const text = JSON.stringify({
+      version: 1,
+      settings: { drillId: 'KeyR', showShortcuts: true },
+      bests: {},
+      neumes: {},
+    });
+    const r = parseProgress(text);
+    expect(r.corrupt).toBe(false);
+    expect(r.progress.settings).toEqual({ drillId: 'KeyR', showShortcuts: true });
+  });
+
+  it('serialize then parse round-trips', () => {
+    const { progress } = recordRun(emptyProgress(), run());
+    expect(parseProgress(serializeProgress(progress)).progress).toEqual(progress);
+  });
+});
+
+describe('recordRun', () => {
+  it('adds tallies to all-time totals', () => {
+    const a = recordRun(emptyProgress(), run()).progress;
+    const b = recordRun(a, run({ tallies: { ison: { attempts: 2, errors: 2 }, oligon: { attempts: 1, errors: 0 } } })).progress;
+    expect(b.neumes).toEqual({ ison: { attempts: 5, errors: 3 }, oligon: { attempts: 1, errors: 0 } });
+  });
+
+  it('the first non-practice run sets the best and newBest', () => {
+    const r = recordRun(emptyProgress(), run());
+    expect(r.newBest).toBe(true);
+    expect(r.progress.bests[bestKey('all', 20)]).toEqual({
+      neumesPerMinute: 30,
+      accuracyPercent: 80,
+      totalSeconds: 40,
+      date: '2026-11-18T10:00:00.000Z',
+    });
+  });
+
+  it('a slower run keeps the old best', () => {
+    const a = recordRun(emptyProgress(), run()).progress;
+    const b = recordRun(a, run({ results: { totalSeconds: 60, neumesPerMinute: 20, accuracyPercent: 100 } }));
+    expect(b.newBest).toBe(false);
+    expect(b.progress.bests[bestKey('all', 20)].neumesPerMinute).toBe(30);
+  });
+
+  it('a tie on rate goes to the higher accuracy', () => {
+    const a = recordRun(emptyProgress(), run()).progress;
+    const better = recordRun(a, run({ results: { totalSeconds: 40, neumesPerMinute: 30, accuracyPercent: 95 } }));
+    expect(better.newBest).toBe(true);
+    expect(better.progress.bests[bestKey('all', 20)].accuracyPercent).toBe(95);
+    const worse = recordRun(a, run({ results: { totalSeconds: 40, neumesPerMinute: 30, accuracyPercent: 70 } }));
+    expect(worse.newBest).toBe(false);
+  });
+
+  it('a practice run never sets a best but adds tallies', () => {
+    const r = recordRun(emptyProgress(), run({ practice: true }));
+    expect(r.newBest).toBe(false);
+    expect(r.progress.bests).toEqual({});
+    expect(r.progress.neumes.ison).toEqual({ attempts: 3, errors: 1 });
+  });
+
+  it('a null rate never sets a best', () => {
+    const r = recordRun(emptyProgress(), run({ results: { totalSeconds: 0, neumesPerMinute: null, accuracyPercent: 100 } }));
+    expect(r.newBest).toBe(false);
+    expect(r.progress.bests).toEqual({});
+  });
+
+  it('bests are per drill and length', () => {
+    let p = recordRun(emptyProgress(), run()).progress;
+    p = recordRun(p, run({ drillId: 'KeyR' })).progress;
+    p = recordRun(p, run({ length: 10 })).progress;
+    expect(Object.keys(p.bests).sort()).toEqual(['KeyR:20', 'all:10', 'all:20']);
+  });
+
+  it('does not mutate its input', () => {
+    const before = recordRun(emptyProgress(), run()).progress;
+    const copy = JSON.parse(JSON.stringify(before));
+    recordRun(before, run({ tallies: { ison: { attempts: 9, errors: 9 } }, results: { totalSeconds: 1, neumesPerMinute: 99, accuracyPercent: 100 } }));
+    expect(before).toEqual(copy);
+  });
+
+  it('throws on a negative tally', () => {
+    expect(() => recordRun(emptyProgress(), run({ tallies: { ison: { attempts: -1, errors: 0 } } }))).toThrow();
+  });
+});
+
+describe('weakest', () => {
+  it('needs the minimum attempts, at least one error, and ranks by error rate', () => {
+    const neumes = {
+      a: { attempts: 10, errors: 5 }, // 0.5
+      b: { attempts: 4, errors: 3 }, // 0.75
+      c: { attempts: 2, errors: 2 }, // too few attempts
+      d: { attempts: 9, errors: 0 }, // no errors
+      e: { attempts: 3, errors: 1 }, // 0.33
+    };
+    expect(weakest(neumes, 5, 3).map((w) => w.id)).toEqual(['b', 'a', 'e']);
+  });
+
+  it('breaks ties by errors, then id, and caps at n', () => {
+    const neumes = {
+      z: { attempts: 4, errors: 2 },
+      y: { attempts: 4, errors: 2 },
+      x: { attempts: 8, errors: 4 },
+    };
+    expect(weakest(neumes, 2, 3).map((w) => w.id)).toEqual(['x', 'y']);
+  });
+});

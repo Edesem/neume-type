@@ -59,7 +59,7 @@ if (pool.length === 0) throw new Error('drawPool: no verified entries');
 ### Validation and configuration
 
 - The only external inputs are the URL parameters `?seed=N` and `?debug`. They are read in `src/main.tsx` and nowhere else.
-- No environment variables or network calls. Browser storage only through the saved-progress module (added in U12) (`CLAUDE.md` guardrail).
+- No environment variables or network calls. Browser storage only through `src/core/progress.ts` (schema) and `src/ui/progressStore.ts` (the only code that touches `localStorage`); stored data is untrusted, so it is parsed and validated and never throws (`CLAUDE.md` guardrail).
 - The dev server port is set in `vite.config.ts`. The Playwright server is set in `playwright.config.ts`. Fixed (A1): dev uses 5273 and Playwright uses 5275 (`E2E_PORT`).
 
 ### Result formatting

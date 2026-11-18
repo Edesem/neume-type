@@ -3,7 +3,9 @@ import { keymap } from '../data/keymap';
 import { drills } from '../core/drills';
 import { formatResults, type FormattedResults } from '../core/format';
 import { hardest, type Tallies } from '../core/stats';
+import { bestKey, weakest } from '../core/progress';
 import { shortcutText } from '../core/shortcut';
+import type { ProgressStore } from './progressStore';
 import type { GameStore } from './store';
 
 const allDrills = drills();
@@ -11,8 +13,12 @@ const blurAfter = (e: { currentTarget: HTMLElement }) => e.currentTarget.blur();
 
 const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
 
-export function App({ store, debug = false }: { store: GameStore; debug?: boolean }) {
+export function App({ store, progress, debug = false }: { store: GameStore; progress: ProgressStore; debug?: boolean }) {
   const { state } = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const saved = useSyncExternalStore(progress.subscribe, progress.getSnapshot);
+  const key = bestKey(state.drillId, state.targets.length);
+  const best = saved.progress.bests[key];
+  const weakNeumes = weakest(saved.progress.neumes, 5, 3).filter((w) => keymap.some((e) => e.id === w.id));
 
   return (
     <main>
@@ -48,7 +54,12 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
         </button>
       </nav>
       {state.results ? (
-        <ResultsView results={formatResults(state.results)} tallies={state.tallies} />
+        <ResultsView
+          results={formatResults(state.results)}
+          tallies={state.tallies}
+          bestRate={best ? best.neumesPerMinute.toFixed(1) : null}
+          newBest={saved.lastRun?.newBest === true && saved.lastRun.key === key}
+        />
       ) : (
         <div className="neume-row" data-testid="row">
           {state.targets.map((entry, i) => {
@@ -88,6 +99,33 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
         Errors: <span data-testid="errors">{state.errors}</span> Attempts:{' '}
         <span data-testid="attempts">{state.attempts}</span>
       </p>
+      {weakNeumes.length > 0 && (
+        <section className="weakest" data-testid="weakest">
+          <h2>Weakest neumes</h2>
+          <ol>
+            {weakNeumes.map((w) => {
+              const entry = keymap.find((e) => e.id === w.id)!;
+              return (
+                <li key={w.id} data-neume-id={w.id}>
+                  <span className="neume">{glyph(entry.codePoints)}</span> {entry.name}: {shortcutText(entry)} (
+                  {Math.round(w.rate * 100)}% errors)
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      )}
+      <button
+        type="button"
+        className="reset-progress"
+        data-testid="reset-progress"
+        onClick={(e) => {
+          if (window.confirm('Reset saved progress? This cannot be undone.')) progress.reset();
+          e.currentTarget.blur();
+        }}
+      >
+        Reset saved progress
+      </button>
       {debug && (
         <>
           <h2>Glyphs</h2>
@@ -104,7 +142,17 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
   );
 }
 
-function ResultsView({ results, tallies }: { results: FormattedResults; tallies: Tallies }) {
+function ResultsView({
+  results,
+  tallies,
+  bestRate,
+  newBest,
+}: {
+  results: FormattedResults;
+  tallies: Tallies;
+  bestRate: string | null;
+  newBest: boolean;
+}) {
   const worst = hardest(tallies, 3);
   return (
     <section className="results" data-testid="done">
@@ -118,6 +166,12 @@ function ResultsView({ results, tallies }: { results: FormattedResults; tallies:
       <p>
         Accuracy: <span data-testid="result-accuracy">{results.accuracy}</span>
       </p>
+      {bestRate !== null && (
+        <p>
+          Best (this drill and length): <span data-testid="best-rate">{bestRate}</span> per minute
+          {newBest && <strong data-testid="new-best"> New best</strong>}
+        </p>
+      )}
       <h3>Hardest this run</h3>
       {worst.length === 0 ? (
         <p data-testid="no-errors">No errors</p>

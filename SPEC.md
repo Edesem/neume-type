@@ -42,6 +42,23 @@ The draw is weighted, not uniform: common neumes come up more often than rare on
 - **Drill:** `all` (every verified entry, the default draw), `plain` (no letter modifier, Shift-only allowed; 28 entries), then one drill per letter modifier used by a verified entry, in `MODIFIERS` order: R (13), S (5), D (4), F (7), B (4, the rests). Grouping follows the guide's modifier table (S, D, F are Quantity Modifiers 1 to 3, R is Kentemata, B is Temporal Augmentation); the button title shows the category. Changing the drill restarts. Draws within a drill use the same weights and floor, over that drill's pool.
 - **Per-neume stats:** the session counts attempts and errors per target id for the current run. The results view lists "Hardest this run": up to 3 neumes with at least one error, sorted by errors desc, then attempts desc, then id, each showing the glyph, name, shortcut and "N errors". With none it shows "No errors".
 
+## 3c. Saved progress
+
+Stored only in the browser (`localStorage`), never sent anywhere. One key, `neume-type.progress`, holding JSON:
+
+```
+{ version: 1,
+  settings: { drillId, showShortcuts, length? },
+  bests:  { "<drillId>:<length>": { neumesPerMinute, accuracyPercent, totalSeconds, date } },
+  neumes: { "<keymap id>": { attempts, errors } } }   // all time
+```
+
+- **Versioning:** optional added fields do not bump `version`; a breaking change bumps it and adds a migration. A stored version newer than the code is not understood: the game uses empty progress in memory and never writes, so newer data is not overwritten. Invalid JSON or a wrong shape: the raw text is copied once to `neume-type.progress.corrupt`, and the game starts empty and writable. Unknown neume or drill ids are kept, not deleted.
+- **Personal best:** the highest neumes per minute for a drill and length; a tie goes to higher accuracy. A run with show shortcuts on, or with no rate, never sets a best, but its per-neume tallies still add to the all-time totals.
+- **Weakest neumes:** all-time, ranked by error rate (errors / attempts), needing at least 3 attempts and at least one error, then errors desc, then id; top 5. Shown under the test when not empty.
+- **Results** show the best for the current drill and length, and "New best" when the run set it. A "Reset saved progress" button asks for confirmation, then clears the key.
+- Missing or throwing storage (private mode, quota) never breaks the game: progress then lives in memory only. Settings (drill, show shortcuts) are saved and restored on load; an unknown stored drill falls back to `all`.
+
 ## 4. Chord input
 
 Neanes says shortcuts use "the physical key positions of a US keyboard layout" and that a plus sign means "hold the first key or keys while pressing the last key". So order is the only rule and **no timing window exists**.
@@ -143,6 +160,7 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 14. A seeded large sample draws each entry at about its chance, includes the rarest entry, and `random()` of 0 and just below 1 give the first and last pool entries.
 15. Drill pools: `all` is every verified entry; `plain` has 28 entries and no letter modifier; R, S, D, F and B have 13, 5, 4, 7 and 4 entries; every drill pool is non-empty; an unknown drill throws. With the R drill every target of a full run uses R.
 16. The hardest list ignores neumes with no errors, sorts by errors, then attempts, then id, and caps at 3. In a real browser a wrong key on a neume lists it with "1 error", and a clean run shows "No errors".
+17. Saved progress: parsing null, invalid JSON, a wrong shape and a future version gives empty progress, and a future version is never overwritten; a throwing or missing storage does not throw; the best follows the rules in section 3c (per drill and length, ties by accuracy, never from practice runs or a null rate); the weakest list needs 3 attempts. In a real browser the best, the weakest panel and the settings survive a reload, corrupt storage does not break the page, and reset clears the panel.
 
 ## Appendix A: Characters of Quantity
 

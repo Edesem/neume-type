@@ -152,3 +152,41 @@ h2 {
   padding: 0 0.15em;
   color: var(--accent);
 }
+
+.weakest h2 {
+  margin: 0 0 0.25rem;
+}
+.weakest ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.weakest li {
+  margin: 0.25rem 0;
+}
+.weakest .neume {
+  font-size: 1.5rem;
+  line-height: 1.6;
+  min-width: 0;
+  padding: 0 0.15em;
+  color: var(--accent);
+}
+.reset-progress {
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+}
+.reset-progress:hover,
+.reset-progress:focus-visible {
+  background: var(--text-muted);
+  color: var(--bg);
+}
+.results strong {
+  color: var(--accent);
+  font-weight: 400;
+}

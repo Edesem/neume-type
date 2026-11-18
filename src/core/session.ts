@@ -35,6 +35,15 @@ export interface SessionState {
   results: Results | null;
 }
 
+export interface CompletedRun {
+  drillId: string;
+  length: number;
+  /** True when shortcuts were shown for the run. */
+  practice: boolean;
+  results: Results;
+  tallies: Tallies;
+}
+
 export interface SessionOptions {
   /** Returns a number in [0, 1), like Math.random. */
   random: () => number;
@@ -48,6 +57,8 @@ export interface SessionOptions {
   drillId?: string;
   /** Show the name and shortcut of the current neume from the start. */
   showShortcuts?: boolean;
+  /** Called once, at the attempt that completes a run. Not called by restart or by keys on the results screen. */
+  onComplete?: (run: CompletedRun) => void;
 }
 
 /**
@@ -148,7 +159,15 @@ export function createSession(options: SessionOptions) {
       if (attemptMatches(result, targets[index])) {
         index++;
         lastAttemptWrong = false;
-        if (index >= targets.length) endedAt = time;
+        if (index >= targets.length) {
+          endedAt = time;
+          const done = state();
+          if (done.results) {
+            options.onComplete?.({
+              drillId, length: targets.length, practice: showShortcuts, results: done.results, tallies: done.tallies,
+            });
+          }
+        }
       } else {
         errors++;
         tally.errors++;
