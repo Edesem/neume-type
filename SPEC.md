@@ -4,9 +4,9 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 ## 1. Scope
 
-**In:** typing neumes, Neanes keybinds, errors for wrong input, speed and accuracy result, restart button, practice options (show shortcuts, drills) and per-neume stats for the run. The 61 entries in the guide's Characters of Quantity table (Appendix A), including combinations.
+**In:** typing neumes, Neanes keybinds, errors for wrong input, speed and accuracy result, restart button, practice options (show shortcuts, drills) and per-neume stats for the run. The 61 entries in the guide's Characters of Quantity table (Appendix A), including combinations. Qualitative characters and fthoras (Appendix B, 29 entries), drilled separately in the V and T drills and not part of the default draw.
 
-**Out:** qualitative characters, fthoras, accounts, online features, themes, settings, backend, database, analytics.
+**Out:** accounts, online features, themes, settings, backend, database, analytics.
 
 **Storage and hosting:** browser storage for saved progress is allowed (U12). Static hosting is allowed with `OFL.txt` beside the font. Still out: accounts, backend, server database, analytics.
 
@@ -133,7 +133,7 @@ With a solo entry for `B` (test data only, no keymap entry has a modifier trigge
 ## 5. Rendering
 
 - Font: `Neanes.otf` 1.0.10 via `@font-face` from `public/fonts/`, with the OFL at `public/fonts/OFL.txt`.
-- Every entry is one precomposed SBMuFL code point. **No overlays or positioning are needed, and no stacked neume is excluded or unverified.** Keep the `codePoints` field as a list anyway, because that is what the data records.
+- Appendix A entries are one precomposed SBMuFL code point. Appendix B entries are the guide's Symbol sequence (a sample base neume plus a zero-advance mark), positioned by the font's own GPOS. No CSS overlays. The `codePoints` field is the list to render.
 - The font has large vertical extents (winAscent 1.4, winDescent 0.466 em). Set a generous line height so glyphs do not clip.
 
 **Sources.** Download both from `github.com/neanes/sbmufl` at commit `13d7675d6070c87b83639a4ded6e3a2fb83df166`: `fonts/Neanes.otf` (SHA-256 `86301a892998089a1d9effa0d40ccd4bc6eb5f8eaa372cf4136354bb2d5c6a90`, byte-identical to `src/assets/fonts/Neanes.otf` in `neanes/neanes`) and `fonts/LICENSE` (SHA-256 `4ebeded2bb3a6f553c8f85d87b1807092b7bbe4f7a169e321e0f8c13ff0d9261`). The `neanes/neanes` repo holds the font but only a GPL `LICENSE`, so the OFL text must come from `neanes/sbmufl`. The licence file carries no copyright line; the font's own copyright string reads "Copyright (c) 2022, Daniel". Do not modify the font.
@@ -144,13 +144,13 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 
 ## 7. Acceptance criteria
 
-1. Keymap data has exactly 61 entries that match Appendix A, unique chords, and no trigger that is also a modifier.
+1. Keymap data has exactly 61 quantity entries that match Appendix A, and 29 Appendix B entries that match Appendix B (11 quality, 18 fthoras); chords and code point sequences are unique across all 90, and no trigger is also a modifier.
 2. All 22 examples in section 4 pass as unit tests with no DOM.
 3. A sampled test has 20 neumes and never includes an `unverified` entry.
 4. Scoring matches the section 3 example and formulas under a fake clock. The clock does not start on modifier presses and stops at neume 20.
 5. In a real browser, Playwright completes a full test with real key events, including chords and one deliberate wrong chord, and the results show accuracy 95.2% (20/21).
 6. In a real browser, `S` tapped and released then `L` counts as wrong on an `S + L` target, and held `S` then `L` counts as correct.
-7. In a real browser, all 61 code points render from the Neanes font, not a fallback.
+7. In a real browser, all code points of all 90 entries render from the Neanes font, not a fallback.
 8. Restart gives a new test with zeroed clock and counts.
 9. Type-check, ESLint, Vitest and Playwright all pass locally and in GitHub Actions.
 10. The font and OFL files match the SHA-256 values in section 5.
@@ -161,6 +161,7 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 15. Drill pools: `all` is every verified entry; `plain` has 28 entries and no letter modifier; R, S, D, F and B have 13, 5, 4, 7 and 4 entries; every drill pool is non-empty; an unknown drill throws. With the R drill every target of a full run uses R.
 16. The hardest list ignores neumes with no errors, sorts by errors, then attempts, then id, and caps at 3. In a real browser a wrong key on a neume lists it with "1 error", and a clean run shows "No errors".
 17. Saved progress: parsing null, invalid JSON, a wrong shape and a future version gives empty progress, and a future version is never overwritten; a throwing or missing storage does not throw; the best follows the rules in section 3c (per drill and length, ties by accuracy, never from practice runs or a null rate); the weakest list needs 3 attempts. In a real browser the best, the weakest panel and the settings survive a reload, corrupt storage does not break the page, and reset clears the panel.
+18. Appendix B: every row matches the keymap; only row 82 is `unverified` and it is never drawn; the default `all` drill is exactly the 61 quantity entries (so its chances and seeded draws are unchanged); the V drill has the 11 quality entries and the T drill the 17 drawable fthoras; in a real browser each V and T target is typed with its own shortcut and all 90 code point sequences render from the Neanes font. Human check, pending: the owner compares the 29 new glyphs with the guide's Symbol column.
 
 ## Appendix A: Characters of Quantity
 
@@ -237,3 +238,48 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 | 59 | `Shift` + `B` + `;` | Shift + KeyB + Semicolon | Rest (4 beats) | U+E0E3 `leimma4` | precomposed | verified |
 | 60 | `Shift` + `=` | Shift + Equal | Cross | U+E0C0 `stavros` | precomposed | verified |
 | 61 | `=` | Equal | Breath | U+E0C1 `breath` | precomposed | verified |
+
+## Appendix B: Characters of Quality and Fthoras
+
+**Sources** (accessed 2026-11-18):
+
+- Shortcuts, names, and code points as rendered in the Symbol column: https://neanes.github.io/neanes/guide/keyboard.html#characters-of-quality (rows 62 to 72) and https://neanes.github.io/neanes/guide/keyboard.html#fthoras (rows 73 to 90).
+- Code point to glyph name: https://github.com/neanes/sbmufl/tree/13d7675d6070c87b83639a4ded6e3a2fb83df166/docs/tables (`quality.md`, `fthores.md`, `alteration.md`, `optional-glyphs.md`). A `.salt01` suffix is written `Salt01` in the id.
+- Font cmap: every code point below is present in the bundled `Neanes.otf`.
+- No Neanes application source was read.
+
+**Rendering.** The guide's Symbol column is a sequence: a sample base neume (Ison U+E000 or Oligon U+E001) plus the mark. The marks have zero advance width and the font's own positioning places them. Each target shows that sequence, and the player types only the mark's shortcut (one attempt per target).
+
+**Verified** means the guide row (name, shortcut, code points as rendered), the SBMuFL glyph name for that code point, and the font cmap all agree. Row 82 is `unverified`: the guide calls U+E19B "Soft Chromatic Ga fthora" but SBMuFL names that code point `fthoraSoftChromaticKeAbove`. It is never drawn until the owner confirms. Row 72's guide name says "above or below" but renders U+E0B1 `yfenBelow`. Not added: Characters of Temporal Augmentation, gorgons, martyrias and the rest. Not machine-checked: how each glyph looks (criterion 18). `Shift` means `ShiftLeft` or `ShiftRight`.
+
+| # | Shortcut | `event.code` | Name | Code points | Mark glyph | Table | Status |
+|---|---|---|---|---|---|---|---|
+| 62 | `V` + `J` | KeyV + KeyJ | Vareia | U+E0A0 U+E000 | `vareia` | quality | verified |
+| 63 | `V` + `K` | KeyV + KeyK | Psēfiston | U+E000 U+E0A1 | `psifiston` | quality | verified |
+| 64 | `Shift` + `V` + `K` | Shift + KeyV + KeyK | Psēfiston (slanted) | U+E000 U+F006 | `psifiston.salt01` | quality | verified |
+| 65 | `V` + `L` | KeyV + KeyL | Antikenoma | U+E001 U+E0A2 | `antikenoma` | quality | verified |
+| 66 | `V` + `U` | KeyV + KeyU | Homalon | U+E001 U+E0A3 | `omalon` | quality | verified |
+| 67 | `V` + `I` | KeyV + KeyI | Connecting Homalon | U+E000 U+E0A4 U+E000 | `omalonConnecting` | quality | verified |
+| 68 | `V` + `N` | KeyV + KeyN | Heteron | U+E000 U+E0A5 | `heteron` | quality | verified |
+| 69 | `V` + `M` | KeyV + KeyM | Connecting Heteron | U+E000 U+E0A6 U+E000 | `heteronConnecting` | quality | verified |
+| 70 | `Shift` + `V` + `M` | Shift + KeyV + KeyM | Connecting Heteron (long) | U+E000 U+F007 U+E000 | `heteronConnecting.salt01` | quality | verified |
+| 71 | `V` + `,` | KeyV + Comma | Endofonon | U+E000 U+E0A7 | `endofonon` | quality | verified |
+| 72 | `V` + `.` | KeyV + Period | Yfen (above or below) | U+E000 U+E0B1 U+E000 | `yfenBelow` | quality | verified |
+| 73 | `T` + `J` | KeyT + KeyJ | Diatonic Ni Low fthora | U+E000 U+E190 | `fthoraDiatonicNiLowAbove` | fthoras | verified |
+| 74 | `T` + `K` | KeyT + KeyK | Diatonic Pa fthora | U+E000 U+E191 | `fthoraDiatonicPaAbove` | fthoras | verified |
+| 75 | `T` + `L` | KeyT + KeyL | Diatonic Vou fthora | U+E000 U+E192 | `fthoraDiatonicVouAbove` | fthoras | verified |
+| 76 | `T` + `;` | KeyT + Semicolon | Diatonic Ga fthora | U+E000 U+E193 | `fthoraDiatonicGaAbove` | fthoras | verified |
+| 77 | `T` + `'` | KeyT + Quote | Diatonic Di fthora | U+E000 U+E194 | `fthoraDiatonicDiAbove` | fthoras | verified |
+| 78 | `T` + `U` | KeyT + KeyU | Diatonic Ke fthora | U+E000 U+E195 | `fthoraDiatonicKeAbove` | fthoras | verified |
+| 79 | `T` + `I` | KeyT + KeyI | Diatonic Zo fthora | U+E000 U+E196 | `fthoraDiatonicZoAbove` | fthoras | verified |
+| 80 | `T` + `O` | KeyT + KeyO | Diatonic Ni High fthora | U+E000 U+E197 | `fthoraDiatonicNiHighAbove` | fthoras | verified |
+| 81 | `T` + `N` | KeyT + KeyN | Soft Chromatic Di fthora | U+E000 U+E19A | `fthoraSoftChromaticDiAbove` | fthoras | verified |
+| 82 | `T` + `M` | KeyT + KeyM | Soft Chromatic Ga fthora | U+E000 U+E19B | `fthoraSoftChromaticKeAbove` | fthoras | unverified |
+| 83 | `T` + `,` | KeyT + Comma | Hard Chromatic Pa fthora | U+E000 U+E198 | `fthoraHardChromaticPaAbove` | fthoras | verified |
+| 84 | `T` + `.` | KeyT + Period | Hard Chromatic Di fthora | U+E000 U+E199 | `fthoraHardChromaticDiAbove` | fthoras | verified |
+| 85 | `T` + `P` | KeyT + KeyP | Enharmonic fthora | U+E000 U+E19C | `fthoraEnharmonicAbove` | fthoras | verified |
+| 86 | `T` + `[` | KeyT + BracketLeft | General Flat fthora | U+E000 U+E204 | `yfesisGenikiAbove` | fthoras | verified |
+| 87 | `T` + `]` | KeyT + BracketRight | General Sharp fthora | U+E000 U+E1F4 | `diesisGenikiAbove` | fthoras | verified |
+| 88 | `T` + `7` | KeyT + Digit7 | Zygos fthora | U+E000 U+E19D | `chroaZygosAbove` | fthoras | verified |
+| 89 | `T` + `8` | KeyT + Digit8 | Kliton fthora | U+E000 U+E19E | `chroaKlitonAbove` | fthoras | verified |
+| 90 | `T` + `9` | KeyT + Digit9 | Spathi fthora | U+E000 U+E19F | `chroaSpathiAbove` | fthoras | verified |

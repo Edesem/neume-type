@@ -1,4 +1,4 @@
-import { keymap, type KeymapEntry } from '../data/keymap';
+import type { KeymapEntry } from '../data/keymap';
 import { DEFAULT_DRILL_ID, drillPool } from './drills';
 import type { Tallies } from './stats';
 import { drawPool, neumeChances } from './weights';
@@ -67,7 +67,7 @@ export interface SessionOptions {
  */
 export function sampleTargets(
   random: () => number,
-  entries: readonly KeymapEntry[] = keymap,
+  entries: readonly KeymapEntry[] = drillPool(DEFAULT_DRILL_ID),
   count: number = TEST_LENGTH,
 ): KeymapEntry[] {
   const pool = drawPool(entries);

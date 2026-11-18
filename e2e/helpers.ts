@@ -1,12 +1,13 @@
 import type { Page } from '@playwright/test';
 import { physicalCode } from '../src/core/chord';
+import { DEFAULT_DRILL_ID, drillPool } from '../src/core/drills';
 import { seededRandom } from '../src/core/random';
 import { sampleTargets } from '../src/core/session';
 import { keymap, type KeymapEntry } from '../src/data/keymap';
 
 
 export function targetsFor(seed: number): KeymapEntry[] {
-  return sampleTargets(seededRandom(seed), keymap);
+  return sampleTargets(seededRandom(seed), drillPool(DEFAULT_DRILL_ID)); // what the app draws on load
 }
 
 /** First seed whose 20 targets satisfy the predicate. The app draws with the same function. */

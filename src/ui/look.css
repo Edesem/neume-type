@@ -52,7 +52,7 @@ h2 {
   font-size: 3rem;
   line-height: 2.4;
   display: inline-block;
-  min-width: 1.5em;
+  min-width: 1.65em; /* wide enough for marks that overhang their base */
   padding: 0.25em 0.15em;
   overflow: visible;
   border-bottom: 3px solid transparent;

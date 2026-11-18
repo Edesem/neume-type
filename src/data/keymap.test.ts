@@ -12,17 +12,58 @@ const find = (id: string) => {
 };
 
 describe('keymap data', () => {
-  it('has exactly 61 entries', () => {
-    expect(keymap).toHaveLength(61);
+  const quantity = keymap.filter((e) => e.table === 'quantity');
+  const appendixB = keymap.filter((e) => e.table !== 'quantity');
+
+  it('has exactly 61 quantity entries', () => {
+    expect(quantity).toHaveLength(61);
   });
 
-  it('has unique ids and unique chords', () => {
-    expect(new Set(keymap.map((e) => e.id)).size).toBe(61);
-    expect(new Set(keymap.map(chordKey)).size).toBe(61);
+  it('has exactly 29 Appendix B entries (11 quality, 18 fthoras)', () => {
+    expect(appendixB).toHaveLength(29);
+    expect(keymap.filter((e) => e.table === 'quality')).toHaveLength(11);
+    expect(keymap.filter((e) => e.table === 'fthoras')).toHaveLength(18);
+    expect(keymap).toHaveLength(90);
   });
 
-  it('has unique code points', () => {
-    expect(new Set(keymap.flatMap((e) => e.codePoints)).size).toBe(61);
+  it('has unique ids and unique chords across all entries', () => {
+    expect(new Set(keymap.map((e) => e.id)).size).toBe(keymap.length);
+    expect(new Set(keymap.map(chordKey)).size).toBe(keymap.length);
+  });
+
+  it('quantity entries have unique single code points', () => {
+    expect(quantity.every((e) => e.codePoints.length === 1)).toBe(true);
+    expect(new Set(quantity.flatMap((e) => e.codePoints)).size).toBe(61);
+  });
+
+  it('every entry has a unique code point sequence', () => {
+    expect(new Set(keymap.map((e) => e.codePoints.join(','))).size).toBe(keymap.length);
+  });
+
+  it('marks only fthoraSoftChromaticKeAbove unverified', () => {
+    expect(keymap.filter((e) => e.status === 'unverified').map((e) => e.id)).toEqual(['fthoraSoftChromaticKeAbove']);
+  });
+
+  it('maps V + J to Vareia, with the mark before its base', () => {
+    expect(find('vareia')).toMatchObject({
+      name: 'Vareia', modifiers: ['KeyV'], trigger: 'KeyJ', codePoints: [0xe0a0, 0xe000], table: 'quality',
+    });
+  });
+
+  it('maps T + [ to General Flat fthora with trigger BracketLeft', () => {
+    expect(find('yfesisGenikiAbove')).toMatchObject({
+      name: 'General Flat fthora', modifiers: ['KeyT'], trigger: 'BracketLeft', codePoints: [0xe000, 0xe204], table: 'fthoras',
+    });
+  });
+
+  it('maps Shift + V + K to Psēfiston (slanted)', () => {
+    expect(find('psifistonSalt01')).toMatchObject({
+      name: 'Psēfiston (slanted)', modifiers: ['Shift', 'KeyV'], trigger: 'KeyK', codePoints: [0xe000, 0xf006],
+    });
+  });
+
+  it('gives every Appendix B entry a null pitch and fixed frequency (owner default)', () => {
+    for (const e of appendixB) expect(e).toMatchObject({ pitch: null, frequency: 'fixed' });
   });
 
   it('lists the 15 guide modifiers plus Shift', () => {
@@ -73,7 +114,7 @@ describe('keymap data', () => {
   });
 
   it('matches every row of SPEC Appendix A', () => {
-    const spec = readFileSync(new URL('../../SPEC.md', import.meta.url), 'utf8').split('## Appendix A')[1];
+    const spec = readFileSync(new URL('../../SPEC.md', import.meta.url), 'utf8').split('## Appendix A')[1].split('## Appendix B')[0];
     const rows = [...spec.matchAll(/^\| (\d+) \| .*? \| (.*?) \| (.*?) \| (U\+[0-9A-F]+) `(\w+)` \| precomposed \| (\w+) \|$/gm)];
     expect(rows).toHaveLength(61);
     for (const [, n, codes, name, cp, glyph, status] of rows) {
@@ -85,6 +126,27 @@ describe('keymap data', () => {
         trigger: parts[parts.length - 1],
         codePoints: [parseInt(cp.slice(2), 16)],
         status,
+      });
+      expect([...entry.modifiers].sort()).toEqual(parts.slice(0, -1).sort());
+    }
+  });
+
+  it('matches every row of SPEC Appendix B', () => {
+    const spec = readFileSync(new URL('../../SPEC.md', import.meta.url), 'utf8').split('## Appendix B')[1];
+    const rows = [...spec.matchAll(/^\| (\d+) \| .*? \| (.*?) \| (.*?) \| ((?:U\+[0-9A-F]+ ?)+) \| `([\w.]+)` \| (\w+) \| (\w+) \|$/gm)];
+    expect(rows).toHaveLength(29);
+    for (const [, n, codes, name, cps, glyph, table, status] of rows) {
+      const parts = codes.split(' + ');
+      const entry = keymap[Number(n) - 1];
+      expect(entry, `row ${n}`).toMatchObject({
+        id: glyph.replace('.salt01', 'Salt01'),
+        name,
+        trigger: parts[parts.length - 1],
+        codePoints: cps.trim().split(' ').map((c) => parseInt(c.slice(2), 16)),
+        table,
+        status,
+        pitch: null,
+        frequency: 'fixed',
       });
       expect([...entry.modifiers].sort()).toEqual(parts.slice(0, -1).sort());
     }

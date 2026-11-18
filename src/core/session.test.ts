@@ -5,7 +5,7 @@ import { drawPool, neumeChances } from './weights';
 import { seededRandom } from './random';
 import { createSession, sampleTargets, TEST_LENGTH } from './session';
 
-const pool = drawPool(keymap);
+const pool = drawPool(keymap.filter((e) => e.table === 'quantity'));
 const chances = neumeChances(pool);
 
 /**

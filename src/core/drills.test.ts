@@ -14,8 +14,31 @@ describe('drills', () => {
     expect(all[0].id).toBe('all');
   });
 
-  it('all contains every verified entry in keymap order', () => {
-    expect(drillPool('all')).toEqual(drawPool(keymap));
+  it('all is exactly the 61 quantity entries in keymap order', () => {
+    const quantity = keymap.filter((e) => e.table === 'quantity');
+    expect(quantity).toHaveLength(61);
+    expect(drillPool('all')).toEqual(drawPool(quantity));
+    for (const e of drillPool('all')) expect(e.table).toBe('quantity');
+  });
+
+  it('V drill has the 11 quality entries', () => {
+    const pool = drillPool('KeyV');
+    expect(pool).toHaveLength(11);
+    for (const e of pool) {
+      expect(e.table).toBe('quality');
+      expect(e.modifiers).toContain('KeyV');
+    }
+  });
+
+  it('T drill has 17 drawable fthoras and never the unverified one', () => {
+    const pool = drillPool('KeyT');
+    expect(pool).toHaveLength(17);
+    for (const e of pool) expect(e.table).toBe('fthoras');
+    expect(pool.map((e) => e.id)).not.toContain('fthoraSoftChromaticKeAbove');
+  });
+
+  it('no drill pool ever contains an unverified entry', () => {
+    for (const d of all) for (const e of drillPool(d.id)) expect(e.status).toBe('verified');
   });
 
   it('plain has 28 entries and none has a letter modifier', () => {
@@ -38,11 +61,11 @@ describe('drills', () => {
     expect(drillPool('KeyB')).toHaveLength(4);
   });
 
-  it('letter drills follow MODIFIERS order', () => {
+  it('quantity letter drills follow MODIFIERS order, then V and T', () => {
     const ids = all.map((d) => d.id).filter((id) => id.startsWith('Key'));
-    expect(ids).toEqual(['KeyR', 'KeyS', 'KeyD', 'KeyF', 'KeyB']);
-    const positions = ids.map((id) => MODIFIERS.indexOf(id));
-    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+    expect(ids).toEqual(['KeyR', 'KeyS', 'KeyD', 'KeyF', 'KeyB', 'KeyV', 'KeyT']);
+    const quantityPositions = ids.slice(0, 5).map((id) => MODIFIERS.indexOf(id));
+    expect(quantityPositions).toEqual([...quantityPositions].sort((a, b) => a - b));
   });
 
   it('every drill pool is non-empty', () => {
