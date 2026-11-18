@@ -15,7 +15,7 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
       {state.results ? (
         <ResultsView results={formatResults(state.results)} />
       ) : (
-        <div data-testid="row">
+        <div className="neume-row" data-testid="row">
           {state.targets.map((entry, i) => {
             const status = i < state.index ? 'done' : i === state.index ? 'current' : 'todo';
             return (
@@ -34,12 +34,13 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
         </div>
       )}
       {state.lastAttemptWrong && !state.done && (
-        <p data-testid="hint">
+        <p className="hint" data-testid="hint">
           {state.targets[state.index].name}: {shortcutText(state.targets[state.index])}
         </p>
       )}
       <button
         type="button"
+        className="restart"
         data-testid="restart"
         onClick={(e) => {
           store.restart();
@@ -48,14 +49,14 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
       >
         Restart
       </button>
-      <p>
+      <p className="stats">
         Errors: <span data-testid="errors">{state.errors}</span> Attempts:{' '}
         <span data-testid="attempts">{state.attempts}</span>
       </p>
       {debug && (
         <>
           <h2>Glyphs</h2>
-          <div>
+          <div className="glyph-reference">
             {keymap.map((e) => (
               <span key={e.id} className="neume" data-testid={`glyph-${e.id}`}>
                 {glyph(e.codePoints)}
@@ -70,7 +71,7 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
 
 function ResultsView({ results }: { results: FormattedResults }) {
   return (
-    <section data-testid="done">
+    <section className="results" data-testid="done">
       <h2>Results</h2>
       <p>
         Time: <span data-testid="result-time">{results.time}</span> s

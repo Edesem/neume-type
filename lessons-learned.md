@@ -68,9 +68,9 @@ if (pool.length === 0) throw new Error('drawPool: no verified entries');
 
 ### Styling
 
-- **Canonical, pending fix, see AUDIT.md A15:** `src/ui/look.css` holds all rules and all colour variables. `src/ui/fonts.css` holds only `@font-face`.
-- Select by class name or `data-state`. `data-testid` is for tests only; never use it in a CSS selector. Existing `[data-testid=…]` selectors are debt, not a pattern to copy.
-- Name a colour variable after its use (`--neume-done`), and rename it when its use changes.
+- **Canonical:** `src/ui/look.css` holds all rules and all colour variables. `src/ui/fonts.css` holds only `@font-face`.
+- Select by class name or `data-state`. `data-testid` is for tests only; never use it in a CSS selector.
+- Name a colour variable after its use (`--neume-done`, `--text-muted`, `--text-button`), and rename it when its use changes. `src/ui/styles.test.ts` checks these rules.
 
 ### Unit tests
 
