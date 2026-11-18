@@ -15,11 +15,11 @@ Use these. Do not write a second version.
 - **Canonical:** `src/core/session.ts`. All game state lives in the session and is read through `session.state()`.
 - `src/ui/store.ts` only forwards events and publishes snapshots. It must not hold a fact that the session already holds or could hold.
 - If the UI needs a new fact, add a field to `SessionState` and unit-test it in `src/core/session.test.ts`.
-- Pending fix, see AUDIT.md A3: `lastWrong` in the store duplicates `hintVisible` in the session. Do not add more fields like it, and do not compute outcomes in the store by comparing counts before and after an event.
+- Do not add fields to the store snapshot, and do not compute outcomes in the store by comparing counts before and after an event. The snapshot is only `{ state }`.
 
 ```ts
 // src/ui/App.tsx: read from the session state
-{state.hintVisible && !state.done && <p className="hint">…</p>}
+{state.lastAttemptWrong && !state.done && <p className="hint">…</p>}
 ```
 
 ### Key events and chords
@@ -31,7 +31,7 @@ Use these. Do not write a second version.
 ### Key names
 
 - **Canonical, pending fix, see AUDIT.md A5:** one exported code-to-label function in `src/core/shortcut.ts` (today it is the private `keyName`), and one exported mapping for "Shift means ShiftLeft or ShiftRight".
-- Until the fix lands: for display text call `shortcutText(entry)`. Do not write another `Key([A-Z])` regular expression, punctuation table or Shift mapping. `src/core/keyLabel.ts` is a stale duplicate; do not use it in new code.
+- Until the fix lands: for display text call `shortcutText(entry)`. Do not write another `Key([A-Z])` regular expression, punctuation table or Shift mapping.
 
 ### Keymap data
 

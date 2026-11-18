@@ -64,8 +64,86 @@ describe('game store', () => {
     const win = new EventTarget();
     store.attach(win);
     win.dispatchEvent(keyEvent('keydown', 'KeyH').ev);
-    expect(store.getSnapshot().lastWrong).toBe(true);
+    expect(store.getSnapshot().state.lastAttemptWrong).toBe(true);
     win.dispatchEvent(keyEvent('keydown', 'KeyJ').ev);
-    expect(store.getSnapshot().lastWrong).toBe(false);
+    expect(store.getSnapshot().state.lastAttemptWrong).toBe(false);
+  });
+
+  const down = (win: EventTarget, code: string, extra: object = {}) =>
+    win.dispatchEvent(keyEvent('keydown', code, extra).ev);
+
+  it('a window blur between a modifier and the trigger clears the held set', () => {
+    const store = make();
+    const win = new EventTarget();
+    store.attach(win);
+    down(win, 'KeyS');
+    win.dispatchEvent(new Event('blur'));
+    down(win, 'KeyJ');
+    expect(store.getSnapshot().state).toMatchObject({ attempts: 1, errors: 0 });
+  });
+
+  const fakeDoc = (visibilityState: string) => Object.assign(new EventTarget(), { visibilityState });
+
+  it('a hidden visibilitychange clears the held set', () => {
+    const store = make();
+    const win = new EventTarget();
+    const doc = fakeDoc('hidden');
+    store.attach(win, doc);
+    down(win, 'KeyS');
+    doc.dispatchEvent(new Event('visibilitychange'));
+    down(win, 'KeyJ');
+    expect(store.getSnapshot().state.errors).toBe(0);
+  });
+
+  it('a visible visibilitychange does not clear the held set', () => {
+    const store = make();
+    const win = new EventTarget();
+    const doc = fakeDoc('visible');
+    store.attach(win, doc);
+    down(win, 'KeyS');
+    doc.dispatchEvent(new Event('visibilitychange'));
+    down(win, 'KeyJ');
+    expect(store.getSnapshot().state.errors).toBe(1);
+  });
+
+  it('a composing keydown is ignored', () => {
+    const store = make();
+    const win = new EventTarget();
+    store.attach(win);
+    down(win, 'KeyH', { isComposing: true });
+    expect(store.getSnapshot().state.attempts).toBe(0);
+  });
+
+  it('shiftKey on the event is forwarded', () => {
+    const store = make();
+    const win = new EventTarget();
+    store.attach(win);
+    down(win, 'KeyJ', { shiftKey: true });
+    expect(store.getSnapshot().state.errors).toBe(1);
+  });
+
+  it('a modifier keydown does not notify subscribers', () => {
+    const store = make();
+    const win = new EventTarget();
+    store.attach(win);
+    let calls = 0;
+    store.subscribe(() => calls++);
+    const before = store.getSnapshot();
+    down(win, 'KeyS');
+    expect(calls).toBe(0);
+    expect(store.getSnapshot()).toBe(before);
+  });
+
+  it('restart notifies once and clears lastAttemptWrong', () => {
+    const store = make();
+    const win = new EventTarget();
+    store.attach(win);
+    down(win, 'KeyH');
+    expect(store.getSnapshot().state.lastAttemptWrong).toBe(true);
+    let calls = 0;
+    store.subscribe(() => calls++);
+    store.restart();
+    expect(calls).toBe(1);
+    expect(store.getSnapshot().state.lastAttemptWrong).toBe(false);
   });
 });

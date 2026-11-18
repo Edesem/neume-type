@@ -241,12 +241,12 @@ describe('D1 hint', () => {
 
   it('is off at the start, on after a wrong attempt, off after a correct one', () => {
     const session = createSession({ random: rigged([J, K]), now: () => 0 });
-    expect(session.state().hintVisible).toBe(false);
+    expect(session.state().lastAttemptWrong).toBe(false);
     session.handle(wrong);
     session.handle({ type: 'up', code: 'KeyH' });
-    expect(session.state().hintVisible).toBe(true);
+    expect(session.state().lastAttemptWrong).toBe(true);
     session.handle({ type: 'down', code: 'KeyJ' });
-    expect(session.state()).toMatchObject({ index: 1, hintVisible: false });
+    expect(session.state()).toMatchObject({ index: 1, lastAttemptWrong: false });
   });
 
   it('stays on through further wrong attempts and modifier-only presses', () => {
@@ -254,13 +254,13 @@ describe('D1 hint', () => {
     session.handle(wrong);
     session.handle({ type: 'down', code: 'KeyS' });
     session.handle({ type: 'down', code: 'KeyH' });
-    expect(session.state().hintVisible).toBe(true);
+    expect(session.state().lastAttemptWrong).toBe(true);
   });
 
   it('is cleared by restart', () => {
     const session = createSession({ random: rigged([J]), now: () => 0 });
     session.handle(wrong);
     session.restart();
-    expect(session.state().hintVisible).toBe(false);
+    expect(session.state().lastAttemptWrong).toBe(false);
   });
 });
