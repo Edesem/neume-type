@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { keymap } from '../data/keymap';
 import { drills } from '../core/drills';
+import { LENGTH_OPTIONS } from '../core/session';
 import { formatResults, type FormattedResults } from '../core/format';
 import { hardest, type Tallies } from '../core/stats';
 import { bestKey, weakest } from '../core/progress';
@@ -39,6 +40,21 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
             }}
           >
             {d.label}
+          </button>
+        ))}
+        <span>length</span>
+        {LENGTH_OPTIONS.map((n) => (
+          <button
+            key={n}
+            type="button"
+            data-testid={`length-${n}`}
+            aria-pressed={state.length === n}
+            onClick={(e) => {
+              store.configure({ length: n });
+              blurAfter(e);
+            }}
+          >
+            {n}
           </button>
         ))}
         <span>shortcuts</span>

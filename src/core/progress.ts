@@ -1,4 +1,4 @@
-import type { Results } from './session';
+import { LENGTH_OPTIONS, type Results } from './session';
 import type { NeumeTally, Tallies } from './stats';
 
 /** Bump only for a breaking change, and add a case to `migrate`. Optional extra fields do not bump it. */
@@ -8,7 +8,7 @@ export const STORAGE_KEY = 'neume-type.progress';
 export interface Settings {
   drillId: string;
   showShortcuts: boolean;
-  /** Added with the test-length option; optional so older data still reads. */
+  /** Test length (10, 20 or 50). Optional: absent or invalid means the default (20). */
   length?: number;
 }
 
@@ -61,13 +61,16 @@ function isProgressV1(v: unknown): v is Progress {
   if (!isObject(v) || v.version !== 1) return false;
   const s = v.settings;
   if (!isObject(s) || typeof s.drillId !== 'string' || typeof s.showShortcuts !== 'boolean') return false;
-  if (s.length !== undefined && !(Number.isInteger(s.length) && (s.length as number) > 0)) return false;
   return everyValue(v.bests, isBest) && everyValue(v.neumes, isTally);
 }
 
 /** Older versions would be converted here. Only version 1 exists. */
 function migrate(v: unknown): Progress | null {
-  return isProgressV1(v) ? v : null;
+  if (!isProgressV1(v)) return null;
+  // An unknown or invalid stored length is not corruption: drop it so the default applies.
+  const { length, ...rest } = v.settings;
+  const settings: Settings = (LENGTH_OPTIONS as readonly number[]).includes(length as number) ? { ...rest, length } : rest;
+  return { ...v, settings };
 }
 
 /**
@@ -95,8 +98,9 @@ export function parseProgress(text: string | null): { progress: Progress; writab
 
 export const serializeProgress = (p: Progress): string => JSON.stringify(p);
 
-export function withSettings(p: Progress, settings: Settings): Progress {
-  return { ...p, settings: { ...settings } };
+/** Merge a settings patch into the saved settings (so saving a drill change keeps the saved length). */
+export function withSettings(p: Progress, patch: Partial<Settings>): Progress {
+  return { ...p, settings: { ...p.settings, ...patch } };
 }
 
 /**

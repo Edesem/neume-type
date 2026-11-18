@@ -62,7 +62,7 @@ export function createProgressStore(storage: StorageLike | null, now: () => stri
       const { progress, newBest } = recordRun(snapshot.progress, { ...run, date: now() });
       publish({ progress, lastRun: { newBest, key: bestKey(run.drillId, run.length) } });
     },
-    saveSettings(settings: Settings) {
+    saveSettings(settings: Partial<Settings>) {
       publish({ ...snapshot, progress: withSettings(snapshot.progress, settings) });
     },
     /** Forget everything saved, including data from a newer version (the player asked for it). */
