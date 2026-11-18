@@ -55,7 +55,7 @@ Neanes says shortcuts use "the physical key positions of a US keyboard layout" a
 | R3 | Together versus in sequence | "Together" means the modifier is still down at the trigger's keydown. Anything else is a sequence, and the trigger is judged without that modifier. |
 | R4 | Order | Modifier after trigger does not combine: the trigger has already fired. Order among modifiers does not matter. |
 | R5 | Release order | Irrelevant. Releasing only updates the held set. A modifier held across attempts still applies to the next one, with no grace period. |
-| R6 | Modifier tapped alone | Nothing happens: no attempt, no error, no clock start. This includes `B`, which is Haplē alone in Neanes but out of scope here. |
+| R6 | Modifier tapped alone | A modifier tapped alone is an attempt only if some keymap entry has that key as its trigger (none today). The attempt fires on the key's release, provided no other key went down between its keydown and keyup (auto-repeats excepted). Its modifiers are those still held at the release. Otherwise nothing happens: no attempt, no error, no clock start. |
 | R7 | Auto-repeat | `event.repeat === true` is ignored for every key, so holding a key can never answer the next neume. |
 | R8 | Wrong chord | Exactly one error per attempt, however many keys are involved. Modifiers never add errors. |
 | R9 | Rollover | A second scored keydown while the first is still down is its own attempt, so fast rolling works. |
@@ -94,6 +94,18 @@ Keys are `↓` down and `↑` up. Each row is a required unit test.
 | C20 | `L` | ↓S, window blur, ↓L | correct: held set cleared (R14) |
 | C21 | `Shift + K` | ↓ShiftLeft ↓ShiftRight ↑ShiftLeft ↓K | correct: Shift still held |
 | C22 | `Shift + =` | ↓Shift ↓Equal | correct: `event.code` works for punctuation |
+
+With a solo entry for `B` (test data only, no keymap entry has a modifier trigger today):
+
+| # | Target | Keys | Result |
+|---|---|---|---|
+| C23 | `B` | ↓B ↑B | one attempt on release: trigger B, no modifiers, correct (R6) |
+| C24 | `B + J` | ↓B ↓J ↑J ↑B | one attempt on ↓J (B + J); the B release adds none |
+| C25 | `B` | ↓B, repeat ↓B ×2, ↑B | one attempt on release; repeats do not cancel |
+| C26 | `B` | ↓B, window blur, ↑B | nothing (R14) |
+| C27 | `B` | ↓Shift ↓B ↑B | 1 error: judged as `Shift + B` |
+| C28 | `B` | ↓B ↓Meta ↑B | nothing |
+| C29 | `B` | ↓Shift ↓B ↑Shift ↑B | correct: Shift was already released at the release |
 
 ## 5. Rendering
 

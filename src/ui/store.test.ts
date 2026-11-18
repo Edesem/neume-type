@@ -146,4 +146,17 @@ describe('game store', () => {
     expect(calls).toBe(1);
     expect(store.getSnapshot().state.lastAttemptWrong).toBe(false);
   });
+
+  it('a solo release publishes a snapshot', () => {
+    const store = createGameStore({ random: () => 0, now: () => 0, soloTriggers: new Set(['KeyB']) });
+    const win = new EventTarget();
+    store.attach(win);
+    let calls = 0;
+    store.subscribe(() => calls++);
+    win.dispatchEvent(keyEvent('keydown', 'KeyB').ev);
+    expect(calls).toBe(0);
+    win.dispatchEvent(keyEvent('keyup', 'KeyB').ev);
+    expect(calls).toBe(1);
+    expect(store.getSnapshot().state.attempts).toBe(1);
+  });
 });

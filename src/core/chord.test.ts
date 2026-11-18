@@ -4,8 +4,8 @@ import { script } from '../test-utils/keyScript';
 import { attemptMatches, createChordTracker, physicalCode, type ChordResult } from './chord';
 
 /** Run a key script through a fresh tracker; waits are irrelevant (R2). */
-function run(steps: string[]): ChordResult[] {
-  const tracker = createChordTracker();
+function run(steps: string[], solo?: ReadonlySet<string>): ChordResult[] {
+  const tracker = createChordTracker(solo);
   const results: ChordResult[] = [];
   for (const item of script(steps)) {
     if ('blur' in item) tracker.blur();
@@ -207,6 +207,69 @@ describe('physicalCode', () => {
   it('maps the logical Shift to ShiftLeft and leaves other modifiers alone', () => {
     expect(physicalCode('Shift')).toBe('ShiftLeft');
     expect(physicalCode('KeyS')).toBe('KeyS');
+  });
+});
+
+describe('C23 to C29: a lone modifier scores on release (solo entry for B, test data only)', () => {
+  const SOLO = new Set(['KeyB']);
+  const hapli = { ...target(ISON), id: 'hapli', modifiers: [], trigger: 'KeyB' };
+  const kinds = (steps: string[]) => run(steps, SOLO).map((r) => r.kind);
+  const attemptOf = (steps: string[]) => {
+    const r = run(steps, SOLO).find((x) => x.kind === 'attempt');
+    if (!r || r.kind !== 'attempt') throw new Error('no attempt');
+    return r;
+  };
+
+  it('C23: B pressed and released alone is one attempt on release, trigger B, no modifiers', () => {
+    expect(kinds(['↓B', '↑B'])).toEqual(['held', 'attempt']);
+    const a = attemptOf(['↓B', '↑B']);
+    expect(a).toMatchObject({ trigger: 'KeyB', modifiers: [], preventDefault: false });
+    expect(attemptMatches(a, hapli)).toBe(true);
+  });
+
+  it('C24: B held then J is one attempt (B + J) and the B release adds none', () => {
+    expect(kinds(['↓B', '↓J', '↑J', '↑B'])).toEqual(['held', 'attempt', 'ignored', 'ignored']);
+    expect(attemptOf(['↓B', '↓J', '↑J', '↑B'])).toMatchObject({ trigger: 'KeyJ', modifiers: ['KeyB'] });
+  });
+
+  it('C24b: B tapped while S is held is attempt B with S; S pressed after B cancels it', () => {
+    expect(kinds(['↓S', '↓B', '↑B', '↑S'])).toEqual(['held', 'held', 'attempt', 'ignored']);
+    expect(attemptOf(['↓S', '↓B', '↑B', '↑S'])).toMatchObject({ trigger: 'KeyB', modifiers: ['KeyS'] });
+    expect(kinds(['↓B', '↓S', '↑S', '↑B'])).toEqual(['held', 'held', 'ignored', 'ignored']);
+  });
+
+  it('C25: auto-repeats of B do not cancel it; release gives one attempt', () => {
+    expect(kinds(['↓B', '↓B!', '↓B!', '↑B'])).toEqual(['held', 'ignored', 'ignored', 'attempt']);
+  });
+
+  it('C26: B, window blur, B release gives nothing', () => {
+    expect(kinds(['↓B', 'blur', '↑B'])).toEqual(['held', 'ignored']);
+  });
+
+  it('C27: Shift held, B tapped gives attempt B with Shift (wrong for a B-alone target)', () => {
+    const a = attemptOf(['↓Shift', '↓B', '↑B']);
+    expect(a).toMatchObject({ trigger: 'KeyB', modifiers: ['Shift'] });
+    expect(attemptMatches(a, hapli)).toBe(false);
+  });
+
+  it('C28: B, Meta down, B release gives nothing', () => {
+    expect(kinds(['↓B', '↓Meta', '↑B'])).toEqual(['held', 'ignored', 'ignored']);
+  });
+
+  it('C29: Shift released before B release gives attempt B with no modifiers', () => {
+    expect(attemptOf(['↓Shift', '↓B', '↑Shift', '↑B'])).toMatchObject({ trigger: 'KeyB', modifiers: [] });
+  });
+
+  it('a Space or Tab keydown while B is held cancels it', () => {
+    expect(kinds(['↓B', '↓Space', '↑B'])).toEqual(['held', 'ignored', 'ignored']);
+  });
+
+  it('C7 still holds with B in the solo set: S tapped alone gives nothing', () => {
+    expect(kinds(['↓S', '↑S'])).toEqual(['held', 'ignored']);
+  });
+
+  it('with no solo triggers (today) B tapped alone gives nothing', () => {
+    expect(run(['↓B', '↑B']).map((r) => r.kind)).toEqual(['held', 'ignored']);
   });
 });
 
