@@ -4,9 +4,9 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 ## 1. Scope
 
-**In:** typing neumes, Neanes keybinds, errors for wrong input, speed and accuracy result, restart button. The 61 entries in the guide's Characters of Quantity table (Appendix A), including combinations.
+**In:** typing neumes, Neanes keybinds, errors for wrong input, speed and accuracy result, restart button, practice options (show shortcuts, drills) and per-neume stats for the run. The 61 entries in the guide's Characters of Quantity table (Appendix A), including combinations.
 
-**Out:** qualitative characters, fthoras, accounts, online features, themes, modes, settings, backend, database, analytics.
+**Out:** qualitative characters, fthoras, accounts, online features, themes, settings, backend, database, analytics.
 
 **Storage and hosting:** browser storage for saved progress is allowed (U12). Static hosting is allowed with `OFL.txt` beside the font. Still out: accounts, backend, server database, analytics.
 
@@ -35,6 +35,12 @@ The draw is weighted, not uniform: common neumes come up more often than rare on
 - Raw weight = 0.5^|pitch|, times 0.25 if uncommon. Fixed entries have raw weight 0.02.
 - Chance = raw weight over the total, with a floor of 0.25% per draw. An entry below the floor gets exactly the floor, the others are scaled proportionally so the total is 100%, and this repeats until stable.
 - The halving factor, uncommon multiplier, fixed weight and floor are named constants in `src/core/weights.ts`. The sampler uses the injected random source and handles `random()` values of 0 and just below 1.
+
+## 3b. Practice options
+
+- **Show shortcuts:** when on, the current neume's name and shortcut show from the start (and after correct attempts), never on the results screen. Off by default. Toggling restarts the test, so a run is wholly practice or not.
+- **Drill:** `all` (every verified entry, the default draw), `plain` (no letter modifier, Shift-only allowed; 28 entries), then one drill per letter modifier used by a verified entry, in `MODIFIERS` order: R (13), S (5), D (4), F (7), B (4, the rests). Grouping follows the guide's modifier table (S, D, F are Quantity Modifiers 1 to 3, R is Kentemata, B is Temporal Augmentation); the button title shows the category. Changing the drill restarts. Draws within a drill use the same weights and floor, over that drill's pool.
+- **Per-neume stats:** the session counts attempts and errors per target id for the current run. The results view lists "Hardest this run": up to 3 neumes with at least one error, sorted by errors desc, then attempts desc, then id, each showing the glyph, name, shortcut and "N errors". With none it shows "No errors".
 
 ## 4. Chord input
 
@@ -135,6 +141,8 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 12. The pitch and class of all 61 rows in `docs/neume-weights.md` equal the keymap's `pitch` and `frequency`, checked by a unit test that fails on any difference.
 13. Chances sum to 1, none is below 0.25%, Ison is highest, and hand-calculated values hold, including a case where the floor needs more than one pass.
 14. A seeded large sample draws each entry at about its chance, includes the rarest entry, and `random()` of 0 and just below 1 give the first and last pool entries.
+15. Drill pools: `all` is every verified entry; `plain` has 28 entries and no letter modifier; R, S, D, F and B have 13, 5, 4, 7 and 4 entries; every drill pool is non-empty; an unknown drill throws. With the R drill every target of a full run uses R.
+16. The hardest list ignores neumes with no errors, sorts by errors, then attempts, then id, and caps at 3. In a real browser a wrong key on a neume lists it with "1 error", and a clean run shows "No errors".
 
 ## Appendix A: Characters of Quantity
 

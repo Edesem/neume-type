@@ -46,6 +46,10 @@ export function createGameStore(options: SessionOptions) {
       return () => listeners.delete(listener);
     },
     getSnapshot: () => snapshot,
+    configure(patch: Parameters<typeof session.configure>[0]) {
+      session.configure(patch);
+      publish();
+    },
     restart() {
       session.restart();
       publish();

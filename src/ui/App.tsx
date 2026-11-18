@@ -1,8 +1,13 @@
 import { useSyncExternalStore } from 'react';
 import { keymap } from '../data/keymap';
+import { drills } from '../core/drills';
 import { formatResults, type FormattedResults } from '../core/format';
+import { hardest, type Tallies } from '../core/stats';
 import { shortcutText } from '../core/shortcut';
 import type { GameStore } from './store';
+
+const allDrills = drills();
+const blurAfter = (e: { currentTarget: HTMLElement }) => e.currentTarget.blur(); // so Space cannot re-trigger it
 
 const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
 
@@ -12,8 +17,38 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
   return (
     <main>
       <h1>Neume Type</h1>
+      <nav className="settings" aria-label="Practice options">
+        <span>drill</span>
+        {allDrills.map((d) => (
+          <button
+            key={d.id}
+            type="button"
+            data-testid={`drill-${d.id}`}
+            aria-pressed={state.drillId === d.id}
+            title={d.title}
+            onClick={(e) => {
+              store.configure({ drillId: d.id });
+              blurAfter(e);
+            }}
+          >
+            {d.label}
+          </button>
+        ))}
+        <span>shortcuts</span>
+        <button
+          type="button"
+          data-testid="show-shortcuts"
+          aria-pressed={state.showShortcuts}
+          onClick={(e) => {
+            store.configure({ showShortcuts: !state.showShortcuts });
+            blurAfter(e);
+          }}
+        >
+          show
+        </button>
+      </nav>
       {state.results ? (
-        <ResultsView results={formatResults(state.results)} />
+        <ResultsView results={formatResults(state.results)} tallies={state.tallies} />
       ) : (
         <div className="neume-row" data-testid="row">
           {state.targets.map((entry, i) => {
@@ -33,7 +68,7 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
           })}
         </div>
       )}
-      {state.lastAttemptWrong && !state.done && (
+      {state.hintVisible && (
         <p className="hint" data-testid="hint">
           {state.targets[state.index].name}: {shortcutText(state.targets[state.index])}
         </p>
@@ -69,7 +104,8 @@ export function App({ store, debug = false }: { store: GameStore; debug?: boolea
   );
 }
 
-function ResultsView({ results }: { results: FormattedResults }) {
+function ResultsView({ results, tallies }: { results: FormattedResults; tallies: Tallies }) {
+  const worst = hardest(tallies, 3);
   return (
     <section className="results" data-testid="done">
       <h2>Results</h2>
@@ -82,6 +118,22 @@ function ResultsView({ results }: { results: FormattedResults }) {
       <p>
         Accuracy: <span data-testid="result-accuracy">{results.accuracy}</span>
       </p>
+      <h3>Hardest this run</h3>
+      {worst.length === 0 ? (
+        <p data-testid="no-errors">No errors</p>
+      ) : (
+        <ol className="hardest" data-testid="hardest">
+          {worst.map((w) => {
+            const entry = keymap.find((e) => e.id === w.id)!;
+            return (
+              <li key={w.id} data-neume-id={w.id}>
+                <span className="neume">{glyph(entry.codePoints)}</span> {entry.name}: {shortcutText(entry)} (
+                {w.errors} {w.errors === 1 ? 'error' : 'errors'})
+              </li>
+            );
+          })}
+        </ol>
+      )}
     </section>
   );
 }
