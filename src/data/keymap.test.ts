@@ -71,7 +71,7 @@ describe('keymap data', () => {
   });
 
   it('matches every row of SPEC Appendix A', () => {
-    const spec = readFileSync('SPEC.md', 'utf8').split('## Appendix A')[1];
+    const spec = readFileSync(new URL('../../SPEC.md', import.meta.url), 'utf8').split('## Appendix A')[1];
     const rows = [...spec.matchAll(/^\| (\d+) \| .*? \| (.*?) \| (.*?) \| (U\+[0-9A-F]+) `(\w+)` \| precomposed \| (\w+) \|$/gm)];
     expect(rows).toHaveLength(61);
     for (const [, n, codes, name, cp, glyph, status] of rows) {
