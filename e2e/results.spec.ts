@@ -82,7 +82,12 @@ test('the restart button is blurred after a click so Space cannot re-trigger it'
 
 test('a fresh run after restart is timed from its own first attempt', async ({ page }) => {
   await playRun(page);
+  await page.waitForTimeout(500);
+  const t0 = Date.now();
   await page.getByTestId('restart').click();
   await playRun(page);
+  const wall = (Date.now() - t0) / 1000;
+  // A clock that did not reset would include the first run and the wait, and exceed `wall`.
+  expect(Number(await page.getByTestId('result-time').textContent())).toBeLessThanOrEqual(wall + 0.05);
   await expect(page.getByTestId('result-accuracy')).toHaveText('100.0%');
 });

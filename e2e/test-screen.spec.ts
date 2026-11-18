@@ -1,24 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { physicalCode } from '../src/core/chord';
-import { keymap, type KeymapEntry } from '../src/data/keymap';
-
-async function currentTarget(page: Page): Promise<KeymapEntry> {
-  const id = await page.locator('[data-state="current"]').getAttribute('data-neume-id');
-  const entry = keymap.find((e) => e.id === id);
-  if (!entry) throw new Error(`unknown target ${id}`);
-  return entry;
-}
-
-async function currentIndex(page: Page): Promise<number> {
-  return Number(await page.locator('[data-state="current"]').getAttribute('data-index'));
-}
-
-async function typeChord(page: Page, entry: KeymapEntry) {
-  for (const m of entry.modifiers) await page.keyboard.down(physicalCode(m));
-  await page.keyboard.down(entry.trigger);
-  await page.keyboard.up(entry.trigger);
-  for (const m of [...entry.modifiers].reverse()) await page.keyboard.up(physicalCode(m));
-}
+import { expect, test } from '@playwright/test';
+import { currentIndex, currentTarget, typeChord } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/?seed=1');
