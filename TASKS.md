@@ -112,7 +112,7 @@ Tasks T14 to T26 come from the post-MVP plan (units U3 to U15). Each is one bran
 
 ## T14. Tooling: Playwright port, type-check screenshots, build in check and CI
 
-Playwright uses its own port (5274) so a running dev server (5273) no longer blocks commits. `tsconfig.json` includes `e2e-screenshots` and config files. `npm run check` includes `npm run build`. CI gets a fifth `build` job that also checks `dist/fonts/Neanes.otf` and `dist/fonts/OFL.txt` exist.
+Playwright uses its own port (5275) so a running dev server (5273) no longer blocks commits. `tsconfig.json` includes `e2e-screenshots` and config files. `npm run check` includes `npm run build`. CI gets a fifth `build` job that also checks `dist/fonts/Neanes.otf` and `dist/fonts/OFL.txt` exist.
 
 - **Done when:** `npm run check` passes and includes a build; with `npm run dev` running in another shell, `npm run e2e` passes; `npx tsc --noEmit --listFiles | grep e2e-screenshots` lists `capture.spec.ts`; CI shows five green jobs.
 

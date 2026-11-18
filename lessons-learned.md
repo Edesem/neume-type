@@ -62,7 +62,7 @@ if (pool.length === 0) throw new Error('sampleTargets: no verified entries to dr
 
 - The only external inputs are the URL parameters `?seed=N` and `?debug`. They are read in `src/main.tsx` and nowhere else.
 - No environment variables or network calls. Browser storage only through the saved-progress module (added in U12) (`CLAUDE.md` guardrail).
-- The dev server port is set in `vite.config.ts`. The Playwright server is set in `playwright.config.ts`. Pending fix, see AUDIT.md A1: Playwright must use a port different from the dev server's.
+- The dev server port is set in `vite.config.ts`. The Playwright server is set in `playwright.config.ts`. Fixed (A1): dev uses 5273 and Playwright uses 5275 (`E2E_PORT`).
 
 ### Result formatting
 
@@ -133,9 +133,9 @@ await page.goto(`/?seed=${seed}`);
 
 ### Tooling and configuration
 
-19. Run `npm run build` as well as `npm run check` before you finish. `check` does not include the build. *Reason: the build is in no hook or CI job.* (A21)
+19. `npm run check` now includes the build, and CI has a `build` job. *Fixed (A21).*
 20. After you add a directory that holds TypeScript, run `npx tsc --noEmit --listFiles | grep <dir>` and confirm it is listed. *Reason: `e2e-screenshots/` is linted but not type-checked.* (A9)
-21. Stop any dev server before you commit, until A1 is fixed. Do not set `reuseExistingServer: true` to get round it. *Reason: the hook's Playwright run needs port 5273.* (A1)
+21. Do not set `reuseExistingServer: true`. *Fixed (A1): Playwright uses port 5275, so a running dev server on 5273 no longer blocks commits.*
 22. Export only what another file imports now. Add an option only when a caller passes it. *Reason: an unused type export and an unused `entries` option.* (A14)
 
 ### Styling
