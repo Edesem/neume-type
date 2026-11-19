@@ -40,8 +40,14 @@ describe('keymap data', () => {
     expect(new Set(keymap.map((e) => e.codePoints.join(','))).size).toBe(keymap.length);
   });
 
-  it('marks only fthoraSoftChromaticKeAbove unverified', () => {
-    expect(keymap.filter((e) => e.status === 'unverified').map((e) => e.id)).toEqual(['fthoraSoftChromaticKeAbove']);
+  // Owner decision 2026-11-19: T + M is the guide's "Soft Chromatic Ga fthora" (the glyph can be read on
+  // Ga or Ke); the SBMuFL-derived id is kept. Nothing is unverified any more.
+  it('has no unverified entries, and row 82 is verified with the guide name and the SBMuFL id', () => {
+    expect(keymap.filter((e) => e.status === 'unverified')).toEqual([]);
+    expect(find('fthoraSoftChromaticKeAbove')).toMatchObject({
+      name: 'Soft Chromatic Ga fthora', modifiers: ['KeyT'], trigger: 'KeyM', codePoints: [0xe000, 0xe19b],
+      status: 'verified', table: 'fthoras',
+    });
   });
 
   it('maps V + J to Vareia, with the mark before its base', () => {

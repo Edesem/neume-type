@@ -193,3 +193,9 @@ Clear letter modifiers on any keydown with `metaKey` set (macOS drops keyups whi
 Owner request: an *avoid repeats* option, off by default, so the same neume never appears twice in a row. When on, each later position is drawn from the drill pool minus the previous id with the chances renormalised, using one `random()` per neume; off is today's draw exactly. Saved with the other settings (merged, absent or invalid means off) and toggling restarts the test. Bests keep the `drill:length` key.
 
 - **Done when:** `npm run check` passes and CI is green; every existing seeded unit and e2e test passes unchanged; the toggle is reachable without `?debug`, persists across reload and restarts the test; SPEC sections 3, 3b, 3c and criterion 19 are updated; screenshots regenerated.
+
+## T28. Verify row 82 (T + M)
+
+Owner decision 2026-11-19: U+E19B is the guide's "Soft Chromatic Ga fthora" (the glyph can be read on Ga or Ke; use Ga). Mark it verified, keep the guide's name and the SBMuFL-derived id, note the difference in SPEC Appendix B. It joins the T drill.
+
+- **Done when:** `npm run check` passes and CI is green; the keymap has no unverified entry; the T drill has 18 entries including row 82 and can draw it; the quality e2e types T + M; SPEC criterion 18 updated.

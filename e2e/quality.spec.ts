@@ -46,6 +46,7 @@ test('every drawable V and T shortcut types correctly through real key events', 
       await typeChord(page, target);
     }
     expect(seen.size).toBe(drillPool(drill).length);
+    if (drill === 'KeyT') expect(seen).toContain('fthoraSoftChromaticKeAbove'); // T + M, row 82
     expect((await counts(page)).errors).toBe(0);
   }
 });
