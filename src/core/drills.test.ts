@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { keymap, MODIFIER_CATEGORIES, MODIFIERS } from '../data/keymap';
 import { DEFAULT_DRILL_ID, drillPool, drills } from './drills';
+import { seededRandom } from './random';
+import { sampleTargets } from './session';
 import { drawPool } from './weights';
 
 const letterModifiers = (m: readonly string[]) => m.filter((x) => x !== 'Shift');
@@ -30,11 +32,13 @@ describe('drills', () => {
     }
   });
 
-  it('T drill has 17 drawable fthoras and never the unverified one', () => {
+  it('T drill has all 18 fthoras, including row 82 (T + M), and can draw it', () => {
     const pool = drillPool('KeyT');
-    expect(pool).toHaveLength(17);
+    expect(pool).toHaveLength(18);
     for (const e of pool) expect(e.table).toBe('fthoras');
-    expect(pool.map((e) => e.id)).not.toContain('fthoraSoftChromaticKeAbove');
+    expect(pool.map((e) => e.id)).toContain('fthoraSoftChromaticKeAbove');
+    const drawn = sampleTargets(seededRandom(1), pool, 2000);
+    expect(drawn.map((e) => e.id)).toContain('fthoraSoftChromaticKeAbove');
   });
 
   it('no drill pool ever contains an unverified entry', () => {
