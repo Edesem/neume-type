@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore, type ReactNode } from 'react';
 import { keymap } from '../data/keymap';
 import { drills } from '../core/drills';
 import { LENGTH_OPTIONS } from '../core/session';
@@ -26,62 +26,66 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
     <main>
       <h1>Neume Type</h1>
       <nav className="settings" aria-label="Practice options">
-        <span>drill</span>
-        {allDrills.map((d) => (
+        <SettingGroup label="drill">
+          {allDrills.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              data-testid={`drill-${d.id}`}
+              aria-pressed={state.drillId === d.id}
+              title={d.title}
+              onClick={(e) => {
+                store.configure({ drillId: d.id });
+                blurAfter(e);
+              }}
+            >
+              {d.label}
+            </button>
+          ))}
+        </SettingGroup>
+        <SettingGroup label="length">
+          {LENGTH_OPTIONS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              data-testid={`length-${n}`}
+              aria-pressed={state.length === n}
+              onClick={(e) => {
+                store.configure({ length: n });
+                blurAfter(e);
+              }}
+            >
+              {n}
+            </button>
+          ))}
+        </SettingGroup>
+        <SettingGroup label="shortcuts">
           <button
-            key={d.id}
             type="button"
-            data-testid={`drill-${d.id}`}
-            aria-pressed={state.drillId === d.id}
-            title={d.title}
+            data-testid="show-shortcuts"
+            aria-pressed={state.showShortcuts}
             onClick={(e) => {
-              store.configure({ drillId: d.id });
+              store.configure({ showShortcuts: !state.showShortcuts });
               blurAfter(e);
             }}
           >
-            {d.label}
+            show
           </button>
-        ))}
-        <span>length</span>
-        {LENGTH_OPTIONS.map((n) => (
+        </SettingGroup>
+        <SettingGroup label="repeats">
           <button
-            key={n}
             type="button"
-            data-testid={`length-${n}`}
-            aria-pressed={state.length === n}
+            data-testid="no-repeats"
+            aria-pressed={state.noRepeats}
+            title="Never the same neume twice in a row"
             onClick={(e) => {
-              store.configure({ length: n });
+              store.configure({ noRepeats: !state.noRepeats });
               blurAfter(e);
             }}
           >
-            {n}
+            avoid
           </button>
-        ))}
-        <span>shortcuts</span>
-        <button
-          type="button"
-          data-testid="show-shortcuts"
-          aria-pressed={state.showShortcuts}
-          onClick={(e) => {
-            store.configure({ showShortcuts: !state.showShortcuts });
-            blurAfter(e);
-          }}
-        >
-          show
-        </button>
-        <span>repeats</span>
-        <button
-          type="button"
-          data-testid="no-repeats"
-          aria-pressed={state.noRepeats}
-          title="Never the same neume twice in a row"
-          onClick={(e) => {
-            store.configure({ noRepeats: !state.noRepeats });
-            blurAfter(e);
-          }}
-        >
-          avoid
-        </button>
+        </SettingGroup>
       </nav>
       {state.results ? (
         <ResultsView
@@ -125,24 +129,38 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
       >
         Restart
       </button>
-      <p className="stats">
+      <p className="stats" hidden={!debug}>
         Errors: <span data-testid="errors">{state.errors}</span> Attempts:{' '}
         <span data-testid="attempts">{state.attempts}</span>
       </p>
       {weakNeumes.length > 0 && (
         <section className="weakest" data-testid="weakest">
           <h2>Weakest neumes</h2>
-          <ol>
-            {weakNeumes.map((w) => {
-              const entry = keymap.find((e) => e.id === w.id)!;
-              return (
-                <li key={w.id} data-neume-id={w.id}>
-                  <span className="neume">{glyph(entry.codePoints)}</span> {entry.name}: {shortcutText(entry)} (
-                  {Math.round(w.rate * 100)}% errors)
-                </li>
-              );
-            })}
-          </ol>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">neume</th>
+                <th scope="col">name</th>
+                <th scope="col">shortcut</th>
+                <th scope="col">errors</th>
+              </tr>
+            </thead>
+            <tbody>
+              {weakNeumes.map((w) => {
+                const entry = keymap.find((e) => e.id === w.id)!;
+                return (
+                  <tr key={w.id} data-neume-id={w.id}>
+                    <td>
+                      <span className="neume">{glyph(entry.codePoints)}</span>
+                    </td>
+                    <td>{entry.name}</td>
+                    <td className="shortcut">{shortcutText(entry)}</td>
+                    <td className="rate">{Math.round(w.rate * 100)}%</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </section>
       )}
       <button
@@ -169,6 +187,15 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
         </>
       )}
     </main>
+  );
+}
+
+function SettingGroup({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="setting-group" role="group" aria-label={label}>
+      <span className="setting-label">{label}</span>
+      <div className="setting-options">{children}</div>
+    </div>
   );
 }
 

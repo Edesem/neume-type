@@ -2,6 +2,9 @@
   --bg: #323437;
   --accent: #e2b714;
   --text-muted: #646669;
+  --text-label: #4f5155;
+  --bar-bg: #2c2e31;
+  --chip-bg: #26282b;
   --text-button: #d1d0c5;
   --neume-todo: #4a4c50;
   --neume-done: #f2f1ea;
@@ -104,29 +107,54 @@ h2 {
 }
 
 .settings {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  background: var(--bar-bg);
+  border-radius: 0.75rem;
+}
+.setting-group {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-muted);
+  max-width: 100%;
 }
-.settings button {
+.setting-label {
+  color: var(--text-label);
+  cursor: default;
+  user-select: none;
+}
+.setting-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  background: var(--chip-bg);
+  border-radius: 0.5rem;
+}
+.setting-options button {
   font: inherit;
   padding: 0.25rem 0.6rem;
   color: var(--text-muted);
   background: transparent;
   border: 0;
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   cursor: pointer;
 }
-.settings button:hover,
-.settings button:focus-visible {
+.setting-options button:hover,
+.setting-options button:focus-visible {
   background: var(--text-muted);
   color: var(--bg);
 }
-.settings button[aria-pressed='true'] {
+.setting-options button[aria-pressed='true'] {
   color: var(--accent);
 }
 
@@ -153,22 +181,66 @@ h2 {
   color: var(--accent);
 }
 
+.weakest {
+  align-self: stretch;
+  box-sizing: border-box;
+  padding: 1.25rem 1.5rem 1rem;
+  text-align: left;
+  background: var(--bar-bg);
+  border: 2px solid var(--accent);
+  border-radius: 0.75rem;
+}
 .weakest h2 {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.75rem;
+  color: var(--text-button);
 }
-.weakest ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.weakest table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
-.weakest li {
-  margin: 0.25rem 0;
+.weakest th {
+  padding: 0 0.75rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-align: left;
+  color: var(--text-label);
+}
+.weakest td {
+  padding: 0.25rem 0.75rem;
+  color: var(--text-button);
+  vertical-align: middle;
+}
+.weakest td:first-child,
+.weakest th:first-child {
+  width: 3.5rem;
+}
+.weakest td:first-child {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+.weakest td:last-child {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.weakest tbody tr:hover td {
+  background: var(--chip-bg);
+}
+.weakest .shortcut {
+  color: var(--text-muted);
+}
+.weakest .rate,
+.weakest th:last-child {
+  text-align: right;
+}
+.weakest .rate {
+  color: var(--error);
 }
 .weakest .neume {
-  font-size: 1.5rem;
-  line-height: 1.6;
+  font-size: 1.75rem;
+  line-height: 1.5;
   min-width: 0;
   padding: 0 0.15em;
+  border-bottom: 0;
   color: var(--accent);
 }
 .reset-progress {
@@ -189,4 +261,22 @@ h2 {
 .results strong {
   color: var(--accent);
   font-weight: 400;
+}
+
+@media (max-width: 30rem) {
+  .weakest {
+    padding: 1rem 0.75rem 0.75rem;
+  }
+  .weakest th,
+  .weakest td {
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+  }
+  .weakest td:first-child,
+  .weakest th:first-child {
+    width: 2.5rem;
+  }
+  .weakest .neume {
+    font-size: 1.5rem;
+  }
 }
