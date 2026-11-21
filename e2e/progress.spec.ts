@@ -34,9 +34,9 @@ test('the weakest panel survives a reload', async ({ page }) => {
   const first = targetsFor(1)[0];
   for (let i = 0; i < 3; i++) await page.keyboard.press('KeyH'); // wrong keys on the first neume
   await playRun(page);
-  await expect(page.getByTestId('weakest').locator(`li[data-neume-id="${first.id}"]`)).toBeVisible();
+  await expect(page.getByTestId('weakest').locator(`tr[data-neume-id="${first.id}"]`)).toBeVisible();
   await page.reload();
-  await expect(page.getByTestId('weakest').locator(`li[data-neume-id="${first.id}"]`)).toBeVisible();
+  await expect(page.getByTestId('weakest').locator(`tr[data-neume-id="${first.id}"]`)).toBeVisible();
 });
 
 test('corrupt storage does not break the page', async ({ page }) => {
@@ -87,4 +87,38 @@ test('settings survive a reset and a reload', async ({ page }) => {
   await page.getByTestId('reset-progress').click();
   await page.reload();
   await expect(page.getByTestId('drill-KeyR')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('the weakest panel is a yellow-outlined card holding a table with no ruled lines', async ({ page }) => {
+  await page.goto('/?seed=1');
+  for (let i = 0; i < 3; i++) await page.keyboard.press('KeyH');
+  await playRun(page);
+  const card = page.getByTestId('weakest');
+  const outline = await card.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return [cs.borderTopColor, cs.borderTopWidth];
+  });
+  expect(outline[0]).toBe('rgb(226, 183, 20)'); // --accent
+  expect(parseFloat(outline[1])).toBeGreaterThanOrEqual(1);
+  // A real table with column headers, so each value sits under its title.
+  const headers = card.locator('table thead th');
+  expect(await headers.count()).toBeGreaterThanOrEqual(3);
+  await expect(card.locator('tbody tr').first().locator('td').first()).toBeVisible();
+  // No hard lines: no cell or row has a visible border.
+  const ruled = await card.locator('th, td, tr, table').evaluateAll((els) =>
+    els.filter((el) => ['top', 'right', 'bottom', 'left'].some((side) => parseFloat(getComputedStyle(el).getPropertyValue(`border-${side}-width`)) > 0 && getComputedStyle(el).getPropertyValue(`border-${side}-style`) !== 'none')).length,
+  );
+  expect(ruled).toBe(0);
+});
+
+test('the weakest card is left-aligned and as wide as the settings bar', async ({ page }) => {
+  await page.goto('/?seed=1');
+  for (let i = 0; i < 3; i++) await page.keyboard.press('KeyH');
+  await playRun(page);
+  const card = (await page.getByTestId('weakest').boundingBox())!;
+  const bar = (await page.locator('.settings').boundingBox())!;
+  expect(Math.abs(card.x - bar.x)).toBeLessThan(2);
+  expect(Math.abs(card.width - bar.width)).toBeLessThan(2);
+  const align = await page.getByTestId('weakest').locator('tbody td').nth(1).evaluate((el) => getComputedStyle(el).textAlign);
+  expect(['left', 'start']).toContain(align);
 });

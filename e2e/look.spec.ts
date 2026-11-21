@@ -38,3 +38,39 @@ test('done neumes are near-white, untyped are dim, stats text keeps its grey', a
   const stats = page.locator('p', { has: page.getByTestId('errors') });
   expect(await stats.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(100, 102, 105)');
 });
+
+test('each setting is a group: a dim non-clickable title beside its selectable options', async ({ page }) => {
+  await page.goto('/?seed=1');
+  const groups = page.locator('.setting-group');
+  expect(await groups.count()).toBeGreaterThanOrEqual(4);
+  for (const group of await groups.all()) {
+    const label = group.locator('.setting-label');
+    await expect(label).toHaveCount(1);
+    expect(await label.locator('button').count()).toBe(0); // a title is never a control
+    expect(await group.locator('.setting-options button').count()).toBeGreaterThan(0);
+  }
+  // The title is visibly quieter than an unselected option.
+  const colour = (selector: string) => page.locator(selector).first().evaluate((el) => getComputedStyle(el).color);
+  expect(await colour('.setting-label')).not.toBe(await colour('.setting-options button[aria-pressed="false"]'));
+});
+
+test('the settings sit in one bar and the options in chips, each on its own background', async ({ page }) => {
+  await page.goto('/?seed=1');
+  const bg = (selector: string) => page.locator(selector).first().evaluate((el) => getComputedStyle(el).backgroundColor);
+  const page_ = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const bar = await bg('.settings');
+  const chip = await bg('.setting-options');
+  expect(bar).not.toBe(page_);
+  expect(chip).not.toBe(bar);
+  expect(chip).not.toBe('rgba(0, 0, 0, 0)');
+  const barBox = (await page.locator('.settings').boundingBox())!;
+  const rowBox = (await page.getByTestId('row').boundingBox())!;
+  expect(barBox.y + barBox.height).toBeLessThanOrEqual(rowBox.y);
+});
+
+test('the errors and attempts line is hidden by default and shown with ?debug', async ({ page }) => {
+  await page.goto('/?seed=1');
+  await expect(page.locator('.stats')).toBeHidden();
+  await page.goto('/?debug');
+  await expect(page.locator('.stats')).toBeVisible();
+});
