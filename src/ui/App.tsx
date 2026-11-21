@@ -93,6 +93,7 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
           tallies={state.tallies}
           bestRate={best ? best.neumesPerMinute.toFixed(1) : null}
           newBest={saved.lastRun?.newBest === true && saved.lastRun.key === key}
+          weak={weakNeumes}
         />
       ) : (
         <div className="neume-row" data-testid="row">
@@ -133,36 +134,6 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
         Errors: <span data-testid="errors">{state.errors}</span> Attempts:{' '}
         <span data-testid="attempts">{state.attempts}</span>
       </p>
-      {weakNeumes.length > 0 && (
-        <section className="weakest" data-testid="weakest">
-          <h2>Weakest neumes</h2>
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">neume</th>
-                <th scope="col">name</th>
-                <th scope="col">shortcut</th>
-                <th scope="col">errors</th>
-              </tr>
-            </thead>
-            <tbody>
-              {weakNeumes.map((w) => {
-                const entry = keymap.find((e) => e.id === w.id)!;
-                return (
-                  <tr key={w.id} data-neume-id={w.id}>
-                    <td>
-                      <span className="neume">{glyph(entry.codePoints)}</span>
-                    </td>
-                    <td>{entry.name}</td>
-                    <td className="shortcut">{shortcutText(entry)}</td>
-                    <td className="rate">{Math.round(w.rate * 100)}%</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </section>
-      )}
       <button
         type="button"
         className="reset-progress"
@@ -204,11 +175,13 @@ function ResultsView({
   tallies,
   bestRate,
   newBest,
+  weak,
 }: {
   results: FormattedResults;
   tallies: Tallies;
   bestRate: string | null;
   newBest: boolean;
+  weak: ReturnType<typeof weakest>;
 }) {
   const worst = hardest(tallies, 3);
   return (
@@ -244,6 +217,39 @@ function ResultsView({
             );
           })}
         </ol>
+      )}
+      {weak.length > 0 && (
+        <section className="weakest" data-testid="weakest" aria-labelledby="weakest-title">
+          <h3 id="weakest-title">Weakest neumes</h3>
+          <p className="weakest-scope">all time · 3+ attempts</p>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">neume</th>
+                <th scope="col">name</th>
+                <th scope="col">shortcut</th>
+                <th scope="col">miss rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {weak.map((w) => {
+                const entry = keymap.find((e) => e.id === w.id)!;
+                return (
+                  <tr key={w.id} data-neume-id={w.id}>
+                    <td>
+                      <span className="neume" aria-hidden="true">
+                        {glyph(entry.codePoints)}
+                      </span>
+                    </td>
+                    <td>{entry.name}</td>
+                    <td className="shortcut">{shortcutText(entry)}</td>
+                    <td className="rate">{Math.round(w.rate * 100)}%</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </section>
       )}
     </section>
   );
