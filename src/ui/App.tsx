@@ -6,6 +6,7 @@ import { formatResults, type FormattedResults } from '../core/format';
 import { hardest, type Tallies } from '../core/stats';
 import { bestKey, hasPlayed, weakest } from '../core/progress';
 import { shortcutText } from '../core/shortcut';
+import { Footer } from './Footer';
 import type { ProgressStore } from './progressStore';
 import type { GameStore } from './store';
 
@@ -175,26 +176,6 @@ function Game({ store, progress, debug = false }: AppProps) {
         </>
       )}
     </main>
-  );
-}
-
-/** Links open in a new tab, because leaving the page would lose the current run. */
-function Footer() {
-  return (
-    <footer className="footer">
-      <span>
-        Neume font and shortcuts from{' '}
-        <a href="https://github.com/neanes/neanes" target="_blank" rel="noreferrer">
-          Neanes
-        </a>
-      </span>
-      <a href="/fonts/OFL.txt" target="_blank" rel="noreferrer">
-        Font licence (OFL 1.1)
-      </a>
-      <a href="https://github.com/Edesem/neume-type/issues" target="_blank" rel="noreferrer">
-        Send feedback
-      </a>
-    </footer>
   );
 }
 
