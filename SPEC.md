@@ -60,6 +60,14 @@ Stored only in the browser (`localStorage`), never sent anywhere. One key, `neum
 - **Results** show the best for the current drill and length, and "New best" when the run set it. A "Reset saved progress" button asks for confirmation, then clears the key.
 - Missing or throwing storage (private mode, quota) never breaks the game: progress then lives in memory only. Settings (drill, show shortcuts, length, avoid repeats) are saved and restored on load; an unknown stored drill falls back to `all`, an absent or invalid stored length to 20, and an absent or invalid stored avoid-repeats value to off. Saving settings merges into the stored ones.
 
+## 3d. First visit and footer
+
+Decided with the owner on 2026-11-26.
+
+- **Instruction:** until a run has been finished in this browser, a short instruction shows between the settings and the neumes: "Type each neume with its Neanes shortcut, using US key positions. For S + L, hold S and press L. A wrong key shows the answer. You need a physical keyboard." "Finished" means the saved progress holds per-neume tallies, so practice runs count and nothing new is stored. It stays through an unfinished run and a reload, so the neumes do not move mid-test, and it returns after "Reset saved progress". Without working storage it shows again on each load until a run is finished.
+- **Footer:** on both the test and results screens, links to Neanes (font and shortcuts), the font licence (`/fonts/OFL.txt`) and feedback (the project's GitHub issues). Links open in a new tab, so a run is not lost.
+- Both texts meet 4.5:1 contrast and fit a 390 px screen.
+
 ## 4. Chord input
 
 Neanes says shortcuts use "the physical key positions of a US keyboard layout" and that a plus sign means "hold the first key or keys while pressing the last key". So order is the only rule and **no timing window exists**.
@@ -166,8 +174,9 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 15. Drill pools: `all` is every verified entry; `plain` has 28 entries and no letter modifier; R, S, D, F and B have 13, 5, 4, 7 and 4 entries; every drill pool is non-empty; an unknown drill throws. With the R drill every target of a full run uses R.
 16. The hardest list ignores neumes with no errors, sorts by errors, then attempts, then id, and caps at 3. In a real browser a wrong key on a neume lists it with "1 error", and a clean run shows "No errors".
 17. Saved progress: parsing null, invalid JSON, a wrong shape and a future version gives empty progress, and a future version is never overwritten; a throwing or missing storage does not throw; the best follows the rules in section 3c (per drill and length, ties by accuracy, never from practice runs or a null rate); the weakest list needs 3 attempts. In a real browser the best, the weakest panel (inside the results only) and the settings survive a reload, corrupt storage does not break the page, and reset clears the panel. The panel text meets 4.5:1 contrast.
-18. Appendix B: every row matches the keymap; no entry is `unverified` (row 82 was verified by the owner on 2026-11-19); the default `all` drill is exactly the 61 quantity entries (so its chances and seeded draws are unchanged); the V drill has the 11 quality entries and the T drill all 18 fthoras, including row 82, which can be drawn; in a real browser each V and T target is typed with its own shortcut and all 90 code point sequences render from the Neanes font. Human check, pending: the owner compares the 29 new glyphs with the guide's Symbol column.
+18. Appendix B: every row matches the keymap; no entry is `unverified` (row 82 was verified by the owner on 2026-11-19); the default `all` drill is exactly the 61 quantity entries (so its chances and seeded draws are unchanged); the V drill has the 11 quality entries and the T drill all 18 fthoras, including row 82, which can be drawn; in a real browser each V and T target is typed with its own shortcut and all 90 code point sequences render from the Neanes font. Human check, done: the owner reported on 2026-11-26 that the glyphs have been checked.
 19. Avoid repeats: off gives exactly the previous draw for a fixed seed; on never puts the same id twice in a row over many seeds and all drills, draws each later position at c_j / (1 - c_prev), uses one `random()` per target, and persists across reload together with the drill and length.
+20. First visit and footer (section 3d): in a real browser the instruction shows above the neumes on a fresh browser and through an unfinished run, is gone after a finished run, restart and reload, and returns after a reset. The footer's three links have the stated targets and open in new tabs, the licence link serves the OFL text, both texts meet 4.5:1 contrast, and a 390 px screen has no sideways scroll.
 
 ## Appendix A: Characters of Quantity
 
