@@ -114,28 +114,34 @@ function Game({ store, progress, debug = false }: AppProps) {
           weak={weakNeumes}
         />
       ) : (
-        <div className="neume-row" data-testid="row">
-          {state.targets.map((entry, i) => {
-            const status = i < state.index ? 'done' : i === state.index ? 'current' : 'todo';
-            return (
-              <span
-                key={i}
-                className="neume"
-                data-index={i}
-                data-state={status}
-                data-neume-id={status === 'current' ? entry.id : undefined}
-                data-error={status === 'current' && state.lastAttemptWrong ? 'true' : undefined}
-              >
-                {glyph(entry.codePoints)}
-              </span>
-            );
-          })}
-        </div>
-      )}
-      {state.hintVisible && (
-        <p className="hint" data-testid="hint">
-          {state.targets[state.index].name}: {shortcutText(state.targets[state.index])}
-        </p>
+        <>
+          {/* Above the neumes, so the answer is on screen; the space is reserved so nothing moves. */}
+          <div className="hint-slot">
+            {state.hintVisible && (
+              <p className="hint" data-testid="hint">
+                {state.targets[state.index].name}:{' '}
+                <span className="shortcut">{shortcutText(state.targets[state.index])}</span>
+              </p>
+            )}
+          </div>
+          <div className="neume-row" data-testid="row">
+            {state.targets.map((entry, i) => {
+              const status = i < state.index ? 'done' : i === state.index ? 'current' : 'todo';
+              return (
+                <span
+                  key={i}
+                  className="neume"
+                  data-index={i}
+                  data-state={status}
+                  data-neume-id={status === 'current' ? entry.id : undefined}
+                  data-error={status === 'current' && state.lastAttemptWrong ? 'true' : undefined}
+                >
+                  {glyph(entry.codePoints)}
+                </span>
+              );
+            })}
+          </div>
+        </>
       )}
       <button
         type="button"
