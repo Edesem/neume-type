@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   bestKey,
   emptyProgress,
+  hasPlayed,
   parseProgress,
   PROGRESS_VERSION,
   recordRun,
@@ -197,6 +198,21 @@ describe('recordRun', () => {
 
   it('throws on a negative tally', () => {
     expect(() => recordRun(emptyProgress(), run({ tallies: { ison: { attempts: -1, errors: 0 } } }))).toThrow();
+  });
+});
+
+describe('hasPlayed', () => {
+  it('is false for empty progress, even after settings are saved', () => {
+    expect(hasPlayed(emptyProgress())).toBe(false);
+    expect(hasPlayed(withSettings(emptyProgress(), { drillId: 'KeyR' }))).toBe(false);
+  });
+
+  it('is true after a finished run', () => {
+    expect(hasPlayed(recordRun(emptyProgress(), run()).progress)).toBe(true);
+  });
+
+  it('is true after a practice run, which sets no best', () => {
+    expect(hasPlayed(recordRun(emptyProgress(), run({ practice: true })).progress)).toBe(true);
   });
 });
 

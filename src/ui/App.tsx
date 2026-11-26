@@ -4,7 +4,7 @@ import { drills } from '../core/drills';
 import { LENGTH_OPTIONS } from '../core/session';
 import { formatResults, type FormattedResults } from '../core/format';
 import { hardest, type Tallies } from '../core/stats';
-import { bestKey, weakest } from '../core/progress';
+import { bestKey, hasPlayed, weakest } from '../core/progress';
 import { shortcutText } from '../core/shortcut';
 import type { ProgressStore } from './progressStore';
 import type { GameStore } from './store';
@@ -15,7 +15,18 @@ const blurAfter = (e: { currentTarget: HTMLElement }) => e.currentTarget.blur();
 
 const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
 
-export function App({ store, progress, debug = false }: { store: GameStore; progress: ProgressStore; debug?: boolean }) {
+type AppProps = { store: GameStore; progress: ProgressStore; debug?: boolean };
+
+export function App(props: AppProps) {
+  return (
+    <>
+      <Game {...props} />
+      <Footer />
+    </>
+  );
+}
+
+function Game({ store, progress, debug = false }: AppProps) {
   const { state } = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const saved = useSyncExternalStore(progress.subscribe, progress.getSnapshot);
   const key = bestKey(state.drillId, state.targets.length);
@@ -87,6 +98,12 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
           </button>
         </SettingGroup>
       </nav>
+      {!hasPlayed(saved.progress) && (
+        <p className="intro" data-testid="intro">
+          Type each neume with its Neanes shortcut, using US key positions. For S&nbsp;+&nbsp;L, hold S and press L.
+          A wrong key shows the answer. You need a physical keyboard.
+        </p>
+      )}
       {state.results ? (
         <ResultsView
           results={formatResults(state.results)}
@@ -158,6 +175,26 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
         </>
       )}
     </main>
+  );
+}
+
+/** Links open in a new tab, because leaving the page would lose the current run. */
+function Footer() {
+  return (
+    <footer className="footer">
+      <span>
+        Neume font and shortcuts from{' '}
+        <a href="https://github.com/neanes/neanes" target="_blank" rel="noreferrer">
+          Neanes
+        </a>
+      </span>
+      <a href="/fonts/OFL.txt" target="_blank" rel="noreferrer">
+        Font licence (OFL 1.1)
+      </a>
+      <a href="https://github.com/Edesem/neume-type/issues" target="_blank" rel="noreferrer">
+        Send feedback
+      </a>
+    </footer>
   );
 }
 
