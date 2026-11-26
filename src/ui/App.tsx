@@ -4,8 +4,9 @@ import { drills } from '../core/drills';
 import { LENGTH_OPTIONS } from '../core/session';
 import { formatResults, type FormattedResults } from '../core/format';
 import { hardest, type Tallies } from '../core/stats';
-import { bestKey, weakest } from '../core/progress';
+import { bestKey, hasPlayed, weakest } from '../core/progress';
 import { shortcutText } from '../core/shortcut';
+import { Footer } from './Footer';
 import type { ProgressStore } from './progressStore';
 import type { GameStore } from './store';
 
@@ -15,7 +16,18 @@ const blurAfter = (e: { currentTarget: HTMLElement }) => e.currentTarget.blur();
 
 const glyph = (codePoints: readonly number[]) => String.fromCodePoint(...codePoints);
 
-export function App({ store, progress, debug = false }: { store: GameStore; progress: ProgressStore; debug?: boolean }) {
+type AppProps = { store: GameStore; progress: ProgressStore; debug?: boolean };
+
+export function App(props: AppProps) {
+  return (
+    <>
+      <Game {...props} />
+      <Footer />
+    </>
+  );
+}
+
+function Game({ store, progress, debug = false }: AppProps) {
   const { state } = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const saved = useSyncExternalStore(progress.subscribe, progress.getSnapshot);
   const key = bestKey(state.drillId, state.targets.length);
@@ -87,6 +99,12 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
           </button>
         </SettingGroup>
       </nav>
+      {!hasPlayed(saved.progress) && (
+        <p className="intro" data-testid="intro">
+          Type each neume with its Neanes shortcut, using US key positions. For S&nbsp;+&nbsp;L, hold S and press L.
+          A wrong key shows the answer. You need a physical keyboard.
+        </p>
+      )}
       {state.results ? (
         <ResultsView
           results={formatResults(state.results)}
@@ -96,28 +114,34 @@ export function App({ store, progress, debug = false }: { store: GameStore; prog
           weak={weakNeumes}
         />
       ) : (
-        <div className="neume-row" data-testid="row">
-          {state.targets.map((entry, i) => {
-            const status = i < state.index ? 'done' : i === state.index ? 'current' : 'todo';
-            return (
-              <span
-                key={i}
-                className="neume"
-                data-index={i}
-                data-state={status}
-                data-neume-id={status === 'current' ? entry.id : undefined}
-                data-error={status === 'current' && state.lastAttemptWrong ? 'true' : undefined}
-              >
-                {glyph(entry.codePoints)}
-              </span>
-            );
-          })}
-        </div>
-      )}
-      {state.hintVisible && (
-        <p className="hint" data-testid="hint">
-          {state.targets[state.index].name}: {shortcutText(state.targets[state.index])}
-        </p>
+        <>
+          {/* Above the neumes, so the answer is on screen; the space is reserved so nothing moves. */}
+          <div className="hint-slot">
+            {state.hintVisible && (
+              <p className="hint" data-testid="hint">
+                {state.targets[state.index].name}:{' '}
+                <span className="shortcut">{shortcutText(state.targets[state.index])}</span>
+              </p>
+            )}
+          </div>
+          <div className="neume-row" data-testid="row">
+            {state.targets.map((entry, i) => {
+              const status = i < state.index ? 'done' : i === state.index ? 'current' : 'todo';
+              return (
+                <span
+                  key={i}
+                  className="neume"
+                  data-index={i}
+                  data-state={status}
+                  data-neume-id={status === 'current' ? entry.id : undefined}
+                  data-error={status === 'current' && state.lastAttemptWrong ? 'true' : undefined}
+                >
+                  {glyph(entry.codePoints)}
+                </span>
+              );
+            })}
+          </div>
+        </>
       )}
       <button
         type="button"

@@ -49,6 +49,9 @@ export const emptyProgress = (): Progress => ({
   neumes: {},
 });
 
+/** True once any run has finished (practice runs too): every finished run adds per-neume tallies. */
+export const hasPlayed = (p: Progress): boolean => Object.keys(p.neumes).length > 0;
+
 export const bestKey = (drillId: string, length: number) => `${drillId}:${length}`;
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);

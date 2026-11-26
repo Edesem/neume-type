@@ -1,15 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { TEST_LENGTH } from '../src/core/session';
-import { currentTarget, targetsFor, typeChord } from './helpers';
-
-/** Type the current target correctly until the results show. `before` runs before the last neume. */
-async function playRun(page: Page, before?: () => Promise<void>) {
-  for (let i = 0; i < TEST_LENGTH; i++) {
-    if (i === TEST_LENGTH - 1) await before?.();
-    await typeChord(page, await currentTarget(page));
-  }
-  await expect(page.getByTestId('done')).toBeVisible();
-}
+import { contrastRatios, currentTarget, playRun, targetsFor, typeChord } from './helpers';
 
 test('first run shows New best and a best rate', async ({ page }) => {
   await page.goto('/?seed=1');
@@ -23,7 +14,9 @@ test('a deliberately slower second run is not a new best', async ({ page }) => {
   await playRun(page);
   const best = await page.getByTestId('best-rate').textContent();
   await page.getByTestId('restart').click();
-  await playRun(page, () => page.waitForTimeout(1500));
+  await playRun(page, async (i) => {
+    if (i === TEST_LENGTH - 1) await page.waitForTimeout(1500);
+  });
   await expect(page.getByTestId('new-best')).toHaveCount(0);
   await expect(page.getByTestId('best-rate')).toHaveText(best!);
 });
@@ -136,23 +129,7 @@ test('the weakest panel text has at least 4.5:1 contrast', async ({ page }) => {
   await page.goto('/?seed=1');
   for (let i = 0; i < 3; i++) await page.keyboard.press('KeyH');
   await playRun(page);
-  const ratios = await page.getByTestId('weakest').evaluate((panel) => {
-    const lum = (rgb: string) => {
-      const [r, g, b] = rgb.match(/[\d.]+/g)!.slice(0, 3).map((v) => {
-        const c = Number(v) / 255;
-        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-      });
-      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    };
-    const bg = lum(getComputedStyle(document.body).backgroundColor);
-    const cells = [
-      ...panel.querySelectorAll('h3, p, th, td:not(:first-child)'),
-    ] as HTMLElement[];
-    return cells.map((el) => {
-      const l = lum(getComputedStyle(el).color);
-      return { text: el.textContent, ratio: (Math.max(l, bg) + 0.05) / (Math.min(l, bg) + 0.05) };
-    });
-  });
+  const ratios = await contrastRatios(page.getByTestId('weakest').locator('h3, p, th, td:not(:first-child)'));
   expect(ratios.length).toBeGreaterThan(5);
   for (const r of ratios) expect(r.ratio, r.text ?? '').toBeGreaterThanOrEqual(4.5);
 });

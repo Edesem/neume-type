@@ -1,19 +1,11 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { seededRandom } from '../src/core/random';
 import { sampleTargets, TEST_LENGTH } from '../src/core/session';
 import { keymap } from '../src/data/keymap';
-import { advanceTo, counts, currentIndex, currentTarget, targetsFor, typeChord } from './helpers';
+import { advanceTo, counts, currentIndex, currentTarget, playRun, targetsFor, typeChord } from './helpers';
 
-/** Type the current target correctly until the results show. `check` runs before each neume. */
 /** Toggling an option restarts, so the page's next test is the second draw from the same seed. */
 const afterRestart = (seed: number) => sampleTargets(seededRandom(seed), keymap, 2 * TEST_LENGTH).slice(TEST_LENGTH);
-
-async function playRun(page: Page, check?: () => Promise<void>) {
-  for (let i = 0; i < TEST_LENGTH && (await page.getByTestId('done').count()) === 0; i++) {
-    await check?.();
-    await typeChord(page, await currentTarget(page));
-  }
-}
 
 test('show shortcuts: hint is visible before any key, with the current name and shortcut', async ({ page }) => {
   const seed = Array.from({ length: 5000 }, (_, i) => i + 1).find((s) => afterRestart(s)[0].id === 'oligonKentimaMiddle')!;

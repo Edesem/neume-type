@@ -1,15 +1,8 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { drillPool } from '../src/core/drills';
 import { seededRandom } from '../src/core/random';
 import { sampleTargets, TEST_LENGTH } from '../src/core/session';
-import { counts, currentTarget, typeChord } from './helpers';
-
-async function playRun(page: Page, check?: () => Promise<void>) {
-  for (let i = 0; i < TEST_LENGTH && (await page.getByTestId('done').count()) === 0; i++) {
-    await check?.();
-    await typeChord(page, await currentTarget(page));
-  }
-}
+import { counts, currentTarget, playRun, typeChord } from './helpers';
 
 test('V drill: a full run typed with real key events finishes with 0 errors', async ({ page }) => {
   await page.goto('/?seed=1');

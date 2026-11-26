@@ -45,6 +45,14 @@ h2 {
   color: var(--text-muted);
 }
 
+.intro {
+  max-width: 40rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
 .neume-row {
   display: flex;
   flex-wrap: wrap;
@@ -79,9 +87,22 @@ h2 {
   border-bottom-color: var(--error);
 }
 
+/* Sticks to the top, so the answer stays on screen while a long test is scrolled. */
+.hint-slot {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  align-self: stretch;
+  min-height: 1.5em; /* one line of hint; more on narrow screens, below */
+}
 .hint {
   margin: 0;
-  color: var(--error);
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--error-text);
+}
+.hint .shortcut {
+  white-space: nowrap;
 }
 
 .results p {
@@ -256,6 +277,29 @@ h2 {
 .results strong {
   color: var(--accent);
   font-weight: 400;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.5rem;
+  padding: 0 1.5rem 2rem;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+.footer a {
+  color: var(--text-soft);
+}
+.footer a:hover,
+.footer a:focus-visible {
+  color: var(--text-button);
+}
+
+@media (max-width: 46rem) {
+  .hint-slot {
+    min-height: 4.5em; /* the longest hint wraps to three lines on the narrowest phones */
+  }
 }
 
 @media (max-width: 30rem) {
