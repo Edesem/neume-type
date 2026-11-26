@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { currentTarget, targetsFor, typeChord } from './helpers';
+import { expect, test } from '@playwright/test';
+import { currentTarget, playRun, targetsFor, typeChord } from './helpers';
 
 const stored = (settings: object) =>
   JSON.stringify({ version: 1, settings: { showShortcuts: false, ...settings }, bests: {}, neumes: {} });
@@ -56,14 +56,6 @@ test('an invalid stored value means off, and the drill and length are kept', asy
   await expect(page.getByTestId('length-10')).toHaveAttribute('aria-pressed', 'true');
 });
 
-async function playRun(page: Page, before?: () => Promise<void>) {
-  for (let i = 0; i < 10 && (await page.getByTestId('done').count()) === 0; i++) {
-    if (i === 9) await before?.();
-    await typeChord(page, await currentTarget(page));
-  }
-  await expect(page.getByTestId('done')).toBeVisible();
-}
-
 test('the best key stays drill:length: a run with it on can set a best, and it is shared with it off', async ({ page }) => {
   await page.goto('/?seed=1');
   await page.getByTestId('length-10').click();
@@ -73,7 +65,9 @@ test('the best key stays drill:length: a run with it on can set a best, and it i
   await expect(page.getByTestId('new-best')).toBeVisible();
   const best = await page.getByTestId('best-rate').textContent();
   await page.getByTestId('no-repeats').click(); // off again, same drill and length
-  await playRun(page, () => page.waitForTimeout(1500)); // clearly slower
+  await playRun(page, async (i) => {
+    if (i === 9) await page.waitForTimeout(1500); // clearly slower
+  });
   await expect(page.getByTestId('new-best')).toHaveCount(0);
   await expect(page.getByTestId('best-rate')).toHaveText(best!);
 });

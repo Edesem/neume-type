@@ -1,8 +1,8 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { physicalCode } from '../src/core/chord';
 import { DEFAULT_DRILL_ID, drillPool } from '../src/core/drills';
 import { seededRandom } from '../src/core/random';
-import { sampleTargets, TEST_LENGTH } from '../src/core/session';
+import { LENGTH_OPTIONS, sampleTargets } from '../src/core/session';
 import { keymap, type KeymapEntry } from '../src/data/keymap';
 
 
@@ -40,13 +40,37 @@ export async function advanceTo(page: Page, index: number) {
   while ((await currentIndex(page)) < index) await typeChord(page, await currentTarget(page));
 }
 
-/** Type a default-length test correctly until the results show. `before` runs before the last neume. */
-export async function playRun(page: Page, before?: () => Promise<void>) {
-  for (let i = 0; i < TEST_LENGTH; i++) {
-    if (i === TEST_LENGTH - 1) await before?.();
+/**
+ * Type a test of any length correctly until the results show, and fail if they never do.
+ * `beforeEach` runs before each neume is typed, with its index.
+ */
+export async function playRun(page: Page, beforeEach?: (index: number) => Promise<unknown>) {
+  const longestTest = Math.max(...LENGTH_OPTIONS);
+  for (let i = 0; i < longestTest && (await page.getByTestId('done').count()) === 0; i++) {
+    await beforeEach?.(i);
     await typeChord(page, await currentTarget(page));
   }
   await expect(page.getByTestId('done')).toBeVisible();
+}
+
+/** Contrast ratio of each matched element's text against the page background. Waits for a match. */
+export async function contrastRatios(elements: Locator): Promise<{ text: string | null; ratio: number }[]> {
+  await elements.first().waitFor(); // evaluateAll does not wait, and would pass on no elements
+  const ratios = await elements.evaluateAll((els) => {
+    const lum = (rgb: string) => {
+      const [r, g, b] = rgb.match(/[\d.]+/g)!.slice(0, 3).map((v) => {
+        const c = Number(v) / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const bg = lum(getComputedStyle(document.body).backgroundColor);
+    return els.map((el) => {
+      const l = lum(getComputedStyle(el).color);
+      return { text: el.textContent, ratio: (Math.max(l, bg) + 0.05) / (Math.min(l, bg) + 0.05) };
+    });
+  });
+  return ratios;
 }
 
 export const counts = async (page: Page) => ({

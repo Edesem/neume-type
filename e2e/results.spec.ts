@@ -1,15 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { counts, currentIndex, currentTarget, typeChord } from './helpers';
+import { counts, currentIndex, currentTarget, playRun, typeChord } from './helpers';
 import { TEST_LENGTH } from '../src/core/session';
 
-/** Play all 20 neumes, with `wrongAt` listing indexes where one wrong key is pressed first. */
-async function playRun(page: Page, wrongAt: number[] = []) {
-  for (let i = 0; i < TEST_LENGTH; i++) {
-    const target = await currentTarget(page);
-    if (wrongAt.includes(i)) await page.keyboard.press('KeyH');
-    await typeChord(page, target);
-  }
-}
+/** A `playRun` hook that presses one wrong key first at each listed index. */
+const wrongKeyAt = (page: Page, indexes: number[]) => async (i: number) => {
+  if (indexes.includes(i)) await page.keyboard.press('KeyH');
+};
 
 const rowText = (page: Page) => page.getByTestId('row').textContent();
 
@@ -18,7 +14,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('criterion 5: after 20 correct and 1 wrong the results show accuracy 95.2%', async ({ page }) => {
-  await playRun(page, [7]);
+  await playRun(page, wrongKeyAt(page, [7]));
   await expect(page.getByTestId('result-accuracy')).toHaveText('95.2%');
   await expect(page.getByTestId('result-time')).toHaveText(/^\d+\.\d{2}$/);
   await expect(page.getByTestId('result-rate')).toHaveText(/^\d+\.\d$/);
@@ -26,7 +22,7 @@ test('criterion 5: after 20 correct and 1 wrong the results show accuracy 95.2%'
 });
 
 test('keys on the results screen change nothing', async ({ page }) => {
-  await playRun(page, [7]);
+  await playRun(page, wrongKeyAt(page, [7]));
   const accuracy = await page.getByTestId('result-accuracy').textContent();
   const time = await page.getByTestId('result-time').textContent();
   const before = await counts(page);
@@ -41,7 +37,7 @@ test('keys on the results screen change nothing', async ({ page }) => {
 });
 
 test('criterion 8: restart after a run gives a new test with zeroed counts', async ({ page }) => {
-  await playRun(page, [3, 9]);
+  await playRun(page, wrongKeyAt(page, [3, 9]));
   await expect(page.getByTestId('result-accuracy')).toBeVisible();
 
   await page.getByTestId('restart').click();

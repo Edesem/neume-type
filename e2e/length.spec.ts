@@ -1,9 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { currentTarget, typeChord } from './helpers';
-
-async function playRun(page: Page) {
-  while ((await page.getByTestId('done').count()) === 0) await typeChord(page, await currentTarget(page));
-}
+import { expect, test } from '@playwright/test';
+import { playRun } from './helpers';
 
 test('the default length is 20 and is shown as pressed', async ({ page }) => {
   await page.goto('/?seed=1');
@@ -63,10 +59,8 @@ test('bests are separate per length', async ({ page }) => {
   await expect(page.getByTestId('best-rate')).toHaveCount(0); // results are gone, so nothing carries over
   // Make the 20-neume run clearly slower than the 10-neume best. With one shared best it could not
   // beat it, so "New best" can only show if the bests are kept per length.
-  for (let i = 0; i < 20 && (await page.getByTestId('done').count()) === 0; i++) {
+  await playRun(page, async (i) => {
     if (i === 19) await page.waitForTimeout(1500);
-    await typeChord(page, await currentTarget(page));
-  }
-  await expect(page.getByTestId('done')).toBeVisible();
+  });
   await expect(page.getByTestId('new-best')).toBeVisible();
 });
