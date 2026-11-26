@@ -1,8 +1,8 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { physicalCode } from '../src/core/chord';
 import { DEFAULT_DRILL_ID, drillPool } from '../src/core/drills';
 import { seededRandom } from '../src/core/random';
-import { sampleTargets } from '../src/core/session';
+import { sampleTargets, TEST_LENGTH } from '../src/core/session';
 import { keymap, type KeymapEntry } from '../src/data/keymap';
 
 
@@ -38,6 +38,15 @@ export async function typeChord(page: Page, entry: KeymapEntry) {
 /** Type the current target correctly until the highlight reaches `index`. */
 export async function advanceTo(page: Page, index: number) {
   while ((await currentIndex(page)) < index) await typeChord(page, await currentTarget(page));
+}
+
+/** Type a default-length test correctly until the results show. `before` runs before the last neume. */
+export async function playRun(page: Page, before?: () => Promise<void>) {
+  for (let i = 0; i < TEST_LENGTH; i++) {
+    if (i === TEST_LENGTH - 1) await before?.();
+    await typeChord(page, await currentTarget(page));
+  }
+  await expect(page.getByTestId('done')).toBeVisible();
 }
 
 export const counts = async (page: Page) => ({

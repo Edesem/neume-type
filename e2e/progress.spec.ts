@@ -1,15 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { TEST_LENGTH } from '../src/core/session';
-import { currentTarget, targetsFor, typeChord } from './helpers';
-
-/** Type the current target correctly until the results show. `before` runs before the last neume. */
-async function playRun(page: Page, before?: () => Promise<void>) {
-  for (let i = 0; i < TEST_LENGTH; i++) {
-    if (i === TEST_LENGTH - 1) await before?.();
-    await typeChord(page, await currentTarget(page));
-  }
-  await expect(page.getByTestId('done')).toBeVisible();
-}
+import { currentTarget, playRun, targetsFor, typeChord } from './helpers';
 
 test('first run shows New best and a best rate', async ({ page }) => {
   await page.goto('/?seed=1');
