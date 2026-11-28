@@ -3,3 +3,11 @@
   src: url('/fonts/Neanes.otf') format('opentype');
   font-display: block;
 }
+
+/* The title only. One variable file holds every weight. */
+@font-face {
+  font-family: 'Lexend Deca';
+  src: url('/fonts/LexendDeca.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: block;
+}

@@ -33,10 +33,18 @@ function Game({ store, progress, debug = false }: AppProps) {
   const key = bestKey(state.drillId, state.targets.length);
   const best = saved.progress.bests[key];
   const weakNeumes = weakest(saved.progress.neumes, 5, 3, knownIds);
+  const restart = (e: { currentTarget: HTMLElement }) => {
+    store.restart();
+    blurAfter(e);
+  };
 
   return (
     <main>
-      <h1>Neume Type</h1>
+      <h1>
+        <button type="button" className="title" onClick={restart}>
+          neumetype
+        </button>
+      </h1>
       <nav className="settings" aria-label="Practice options">
         <SettingGroup label="drill">
           {allDrills.map((d) => (
@@ -147,10 +155,7 @@ function Game({ store, progress, debug = false }: AppProps) {
         type="button"
         className="restart"
         data-testid="restart"
-        onClick={(e) => {
-          store.restart();
-          e.currentTarget.blur(); // so Space cannot re-trigger the button
-        }}
+        onClick={restart}
       >
         Restart
       </button>
