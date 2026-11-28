@@ -31,7 +31,7 @@ Install Playwright browsers inside the project with `PLAYWRIGHT_BROWSERS_PATH=0`
 - `src/core/`: chord detection, scoring and sampling. Plain TypeScript with no React or DOM imports (enforced by ESLint, `eslint.config.js`).
 - `src/ui/`: thin React layer.
 - `src/core/progress.ts` is the only storage schema (pure, no DOM), and `src/ui/progressStore.ts` is the only place that touches `localStorage`.
-- `public/fonts/`: `Neanes.otf` and `OFL.txt`.
+- `public/fonts/`: `Neanes.otf` with `OFL.txt`, and `LexendDeca.ttf` with `OFL-LexendDeca.txt`.
 - `e2e/`: Playwright tests that send real key events to the running page.
 - `src/test-utils/`: unit test helpers.
 - `e2e-screenshots/`: capture script for `npm run screenshots`.
@@ -63,4 +63,4 @@ Install Playwright browsers inside the project with `PLAYWRIGHT_BROWSERS_PATH=0`
 
 - Neanes and Monkeytype are GPL-3.0. Never copy their source code or assets.
 - Reading the published Neanes shortcut table and SBMuFL docs is fine. Do not read Neanes application source to derive behaviour.
-- The Neanes font and its OFL 1.1 licence file are the only third-party files allowed. Keep `OFL.txt` beside the font and do not modify the font.
+- The only third-party files allowed are the Neanes font and, for the title only (owner decision 2026-11-28), the Lexend Deca font, each with its OFL 1.1 licence file. Keep `OFL.txt` (Neanes) and `OFL-LexendDeca.txt` beside the fonts and do not modify either font.
