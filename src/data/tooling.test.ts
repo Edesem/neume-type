@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import playwrightConfig, { E2E_PORT } from '../../playwright.config';
 import viteConfig from '../../vite.config';
@@ -20,5 +20,12 @@ describe('tooling', () => {
       readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
     ) as { scripts: Record<string, string> };
     expect(pkg.scripts.check).toContain('npm run build');
+  });
+
+  it('CI build job checks that every file in public/fonts is deployed', () => {
+    const ci = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+    const files = readdirSync(new URL('../../public/fonts/', import.meta.url));
+    expect(files.length).toBeGreaterThan(0);
+    for (const name of files) expect(ci).toContain(`test -f dist/fonts/${name}`);
   });
 });

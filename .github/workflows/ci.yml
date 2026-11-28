@@ -46,3 +46,4 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: test -f dist/fonts/Neanes.otf && test -f dist/fonts/OFL.txt
+      - run: test -f dist/fonts/LexendDeca.ttf && test -f dist/fonts/OFL-LexendDeca.txt

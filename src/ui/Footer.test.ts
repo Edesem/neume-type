@@ -5,9 +5,11 @@ import { Footer } from './Footer';
 
 afterEach(() => vi.unstubAllEnvs());
 
-describe('Footer licence link', () => {
-  it.each(['/', '/neume-type/'])('follows the Vite base %s, like the font URL', (base) => {
+describe('Footer licence links', () => {
+  it.each(['/', '/neume-type/'])('follow the Vite base %s, like the font URL', (base) => {
     vi.stubEnv('BASE_URL', base);
-    expect(renderToStaticMarkup(createElement(Footer))).toContain(`href="${base}fonts/OFL.txt"`);
+    const html = renderToStaticMarkup(createElement(Footer));
+    expect(html).toContain(`href="${base}fonts/OFL.txt"`);
+    expect(html).toContain(`href="${base}fonts/OFL-LexendDeca.txt"`);
   });
 });

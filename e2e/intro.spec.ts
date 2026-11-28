@@ -46,12 +46,14 @@ test('resetting saved progress brings the instruction back', async ({ page }) =>
   await expect(page.getByTestId('intro')).toBeVisible();
 });
 
-test('the footer credits Neanes and links to the licence and to feedback, in new tabs', async ({ page }) => {
+test('the footer credits Neanes and Monkeytype and links to both licences and to feedback, in new tabs', async ({ page }) => {
   await page.goto('/?seed=1');
   const footer = page.getByRole('contentinfo');
   const links = [
     ['Neanes', 'https://github.com/neanes/neanes'],
     ['Font licence (OFL 1.1)', '/fonts/OFL.txt'],
+    ['Lexend Deca licence (OFL 1.1)', '/fonts/OFL-LexendDeca.txt'],
+    ['Monkeytype', 'https://monkeytype.com'],
     ['Send feedback', 'https://github.com/Edesem/neume-type/issues'],
   ];
   await expect(footer.getByRole('link')).toHaveCount(links.length);
@@ -70,6 +72,19 @@ test('the footer licence link serves the font licence', async ({ page, request }
   expect(await response.text()).toContain('SIL OPEN FONT LICENSE');
 });
 
+test('the Lexend Deca licence link serves that font licence', async ({ page, request }) => {
+  await page.goto('/?seed=1');
+  const href = await page.getByRole('link', { name: 'Lexend Deca licence (OFL 1.1)' }).getAttribute('href');
+  const text = await (await request.get(href!)).text();
+  expect(text).toContain('SIL OPEN FONT LICENSE');
+  expect(text).toContain('The Lexend Project Authors');
+});
+
+test('the footer says the app is inspired by Monkeytype', async ({ page }) => {
+  await page.goto('/?seed=1');
+  await expect(page.getByRole('contentinfo')).toContainText('Inspired by Monkeytype');
+});
+
 test('the footer stays on the results screen', async ({ page }) => {
   await page.goto('/?seed=1');
   await playRun(page);
@@ -79,7 +94,7 @@ test('the footer stays on the results screen', async ({ page }) => {
 test('the instruction and footer have at least 4.5:1 contrast', async ({ page }) => {
   await page.goto('/?seed=1');
   const ratios = await contrastRatios(page.locator('.intro, .footer, .footer a'));
-  expect(ratios).toHaveLength(5); // the instruction, the footer and its three links
+  expect(ratios).toHaveLength(7); // the instruction, the footer and its five links
   for (const r of ratios) expect(r.ratio, r.text ?? '').toBeGreaterThanOrEqual(4.5);
 });
 
