@@ -199,3 +199,9 @@ Owner request: an *avoid repeats* option, off by default, so the same neume neve
 Owner decision 2026-11-19: U+E19B is the guide's "Soft Chromatic Ga fthora" (the glyph can be read on Ga or Ke; use Ga). Mark it verified, keep the guide's name and the SBMuFL-derived id, note the difference in SPEC Appendix B. It joins the T drill.
 
 - **Done when:** `npm run check` passes and CI is green; the keymap has no unverified entry; the T drill has 18 entries including row 82 and can draw it; the quality e2e types T + M; SPEC criterion 18 updated.
+
+## T29. Favicon
+
+Owner choice 2026-11-28: Petastē with Ison on the dark background.
+
+- **Done when:** `npm run check` passes and CI is green; the page links the SVG icon and it is served; a browser test shows it matches the font's U+E040 in the accent colour on the background tile; SPEC section 6 and criterion 21 are updated.
