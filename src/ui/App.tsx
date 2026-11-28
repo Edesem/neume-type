@@ -41,7 +41,7 @@ function Game({ store, progress, debug = false }: AppProps) {
   return (
     <main>
       <h1>
-        <button type="button" className="title" onClick={restart}>
+        <button type="button" className="title" title="Restart test" onClick={restart}>
           neumetype
         </button>
       </h1>

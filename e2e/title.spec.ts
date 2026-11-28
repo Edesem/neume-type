@@ -33,11 +33,21 @@ test('clicking the title restarts a running test', async ({ page }) => {
 });
 
 test('clicking the title on the results screen starts a new test', async ({ page }) => {
-  await page.goto('/?seed=1');
+  await page.goto('/?seed=1&debug');
   await playRun(page);
-  await page.getByRole('button', { name: 'neumetype' }).click();
+  const title = page.getByRole('button', { name: 'neumetype' });
+  await title.click();
   await expect(page.getByTestId('row')).toBeVisible();
   await expect(page.getByTestId('done')).toHaveCount(0);
+  expect(await counts(page)).toEqual({ attempts: 0, errors: 0 });
+  await expect(title).not.toBeFocused();
+});
+
+test('the title says that clicking it restarts the test', async ({ page }) => {
+  await page.goto('/?seed=1');
+  const title = page.getByRole('button', { name: 'neumetype' });
+  await expect(title).toHaveAttribute('title', 'Restart test'); // the tooltip
+  await expect(title).toHaveAccessibleDescription('Restart test');
 });
 
 test('the title gives up focus after a click, so Space cannot restart again', async ({ page }) => {

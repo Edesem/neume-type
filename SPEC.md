@@ -8,7 +8,7 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
 
 **Out:** accounts, online features, themes, backend, database, analytics.
 
-**Storage and hosting:** browser storage for saved progress is allowed (U12). Static hosting is allowed with `OFL.txt` beside the font. Still out: accounts, backend, server database, analytics.
+**Storage and hosting:** browser storage for saved progress is allowed (U12). Static hosting is allowed with each font's licence beside it (`OFL.txt` for Neanes, `OFL-LexendDeca.txt` for Lexend Deca). Still out: accounts, backend, server database, analytics.
 
 ## 2. Open decisions (defaults apply unless the user changes them)
 
@@ -26,7 +26,7 @@ A Monkeytype-style drill for entering Byzantine chant neumes with Neanes keyboar
    - Neumes per minute = test length / (time in minutes), to 1 decimal.
    - Accuracy = correct attempts / total attempts, as a percentage to 1 decimal.
    - Example: 40,000 ms with 5 errors gives 40.00 s, 30.0 per minute, 80.0% (20/25).
-6. The restart button is visible during the test and on results. It draws a new test and resets clock and counts. Clicking the title does the same. Attempts on the results screen are ignored.
+6. The restart button is visible during the test and on results. It draws a new test and resets clock and counts. Clicking the title does the same; its tooltip reads "Restart test". Attempts on the results screen are ignored.
 
 ## 3a. Weighting
 
@@ -67,7 +67,7 @@ Decided with the owner on 2026-11-26.
 - **Instruction:** until a run has been finished in this browser, a short instruction shows between the settings and the neumes: "Type each neume with its Neanes shortcut, using US key positions. For S + L, hold S and press L. A wrong key shows the answer. You need a physical keyboard." "Finished" means the saved progress holds per-neume tallies, so practice runs count and nothing new is stored. It stays through an unfinished run and a reload, so the neumes do not move mid-test, and it returns after "Reset saved progress". Without working storage it shows again on each load until a run is finished.
 - **Reset exception:** "Reset saved progress" takes effect at once. Pressed during a run, it inserts the instruction and moves the neumes down once; on the results screen it appears above the results.
 - **Hint position:** the hint (D1, and section 3b's show shortcuts) sits between the instruction and the neumes, so a first-time visitor sees the answer without scrolling. Its space is reserved during a test (one line, three on screens up to 46rem), so at default text size and widths from 320px showing it never moves the neumes (narrower screens or text-only zoom may move them by a line). The shortcut never breaks across lines, and the hint uses the readable error colour (`--error-text`, at least 4.5:1). It sticks to the top of the window when a long test is scrolled. Decided with the owner on 2026-11-26.
-- **Footer:** on both the test and results screens, links to Neanes (font and shortcuts), the font licence (`fonts/OFL.txt` under the Vite base, like the font) and feedback (the project's GitHub issues). Links open in a new tab, so a run is not lost.
+- **Footer:** on both the test and results screens, links to Neanes (font and shortcuts), both font licences (`fonts/OFL.txt` for Neanes and `fonts/OFL-LexendDeca.txt` for Lexend Deca, under the Vite base, like the fonts), Monkeytype ("Inspired by Monkeytype", https://monkeytype.com; owner request 2026-11-28) and feedback (the project's GitHub issues). Links open in a new tab, so a run is not lost.
 - Both texts meet 4.5:1 contrast and fit a 390 px screen.
 
 ## 4. Chord input
@@ -182,9 +182,9 @@ Favicon (owner's choice, 2026-11-28): Petastē with Ison (U+E040) in the accent 
 17. Saved progress: parsing null, invalid JSON, a wrong shape and a future version gives empty progress, and a future version is never overwritten; a throwing or missing storage does not throw; the best follows the rules in section 3c (per drill and length, ties by accuracy, never from practice runs or a null rate); the weakest list needs 3 attempts. In a real browser the best, the weakest panel (inside the results only) and the settings survive a reload, corrupt storage does not break the page, and reset clears the panel. The panel text meets 4.5:1 contrast.
 18. Appendix B: every row matches the keymap; no entry is `unverified` (row 82 was verified by the owner on 2026-11-19); the default `all` drill is exactly the 61 quantity entries (so its chances and seeded draws are unchanged); the V drill has the 11 quality entries and the T drill all 18 fthoras, including row 82, which can be drawn; in a real browser each V and T target is typed with its own shortcut and all 90 code point sequences render from the Neanes font. Human check, done: the owner reported on 2026-11-26 that the glyphs have been checked.
 19. Avoid repeats: off gives exactly the previous draw for a fixed seed; on never puts the same id twice in a row over many seeds and all drills, draws each later position at c_j / (1 - c_prev), uses one `random()` per target, and persists across reload together with the drill and length.
-20. First visit and footer (section 3d): in a real browser the instruction shows above the neumes on a fresh browser and through an unfinished run, is gone after a finished run, restart and reload, and returns after a reset. The footer's three links have the stated targets and open in new tabs, the licence link serves the OFL text, both texts meet 4.5:1 contrast, and a 390 px screen has no sideways scroll. The licence link follows a non-root Vite base (unit test). On a 1280x600 screen the hint is fully visible after a first visitor's wrong key; with the longest hint at 1280, 600, 390 and 320 px it sits above the neumes without moving them; and late in a scrolled 50-neume test it is on screen and clear of the current neume.
+20. First visit and footer (section 3d): in a real browser the instruction shows above the neumes on a fresh browser and through an unfinished run, is gone after a finished run, restart and reload, and returns after a reset. The footer's five links have the stated targets and open in new tabs, each licence link serves its OFL text, both texts meet 4.5:1 contrast, and a 390 px screen has no sideways scroll. Both licence links follow a non-root Vite base (unit test). On a 1280x600 screen the hint is fully visible after a first visitor's wrong key; with the longest hint at 1280, 600, 390 and 320 px it sits above the neumes without moving them; and late in a scrolled 50-neume test it is on screen and clear of the current neume.
 21. Favicon (section 6): in a real browser the page links an SVG icon that is served; its corners are transparent, its tile is `--bg`, and its `--accent` shape overlaps U+E040 drawn by the bundled font (over 93%), unstretched and centred.
-22. Title (sections 3 and 6): in a real browser the heading and tab read "neumetype", the title renders from the bundled Lexend Deca font, and clicking it during a test or on the results gives a new test with zeroed counts, without keeping focus.
+22. Title (sections 3 and 6): in a real browser the heading and tab read "neumetype", the title renders from the bundled Lexend Deca font, and clicking it during a test or on the results gives a new test with zeroed counts, without keeping focus; it has the tooltip "Restart test". The CI build job checks that every file in `public/fonts` is deployed (unit test).
 
 ## Appendix A: Characters of Quantity
 
