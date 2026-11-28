@@ -159,6 +159,8 @@ With a solo entry for `B` (test data only, no keymap entry has a modifier trigge
 
 Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code or assets. Centred column, minimal chrome, system monospace stack for UI text, neumes in a wrapping row. The title reads "neumetype" (lower case, also the browser tab) in Lexend Deca, the typeface of Monkeytype's logo (owner decision 2026-11-28). Palette (approximate, recalled, not sourced): background `#323437`, accent/current `#e2b714`, untyped text (labels, stats) `#646669`, error `#ca4754`. Neume states (owner's choice, T13): done `#f2f1ea` (very bright), untyped `#4a4c50` (deliberately low contrast, close to the background), current `#e2b714`. Buttons keep `#d1d0c5`.
 
+Favicon (owner's choice, 2026-11-28): Petastē with Ison (U+E040) in the accent colour on a rounded tile of the background colour, as `public/favicon.svg`. The glyph is stored as an outline taken from the unmodified Neanes font, because an SVG favicon cannot use the page's font.
+
 ## 7. Acceptance criteria
 
 1. Keymap data has exactly 61 quantity entries that match Appendix A, and 29 Appendix B entries that match Appendix B (11 quality, 18 fthoras); chords and code point sequences are unique across all 90, and no trigger is also a modifier.
@@ -181,7 +183,8 @@ Copy the layout and feel of default Monkeytype by eye, with no Monkeytype code o
 18. Appendix B: every row matches the keymap; no entry is `unverified` (row 82 was verified by the owner on 2026-11-19); the default `all` drill is exactly the 61 quantity entries (so its chances and seeded draws are unchanged); the V drill has the 11 quality entries and the T drill all 18 fthoras, including row 82, which can be drawn; in a real browser each V and T target is typed with its own shortcut and all 90 code point sequences render from the Neanes font. Human check, done: the owner reported on 2026-11-26 that the glyphs have been checked.
 19. Avoid repeats: off gives exactly the previous draw for a fixed seed; on never puts the same id twice in a row over many seeds and all drills, draws each later position at c_j / (1 - c_prev), uses one `random()` per target, and persists across reload together with the drill and length.
 20. First visit and footer (section 3d): in a real browser the instruction shows above the neumes on a fresh browser and through an unfinished run, is gone after a finished run, restart and reload, and returns after a reset. The footer's three links have the stated targets and open in new tabs, the licence link serves the OFL text, both texts meet 4.5:1 contrast, and a 390 px screen has no sideways scroll. The licence link follows a non-root Vite base (unit test). On a 1280x600 screen the hint is fully visible after a first visitor's wrong key; with the longest hint at 1280, 600, 390 and 320 px it sits above the neumes without moving them; and late in a scrolled 50-neume test it is on screen and clear of the current neume.
-21. Title (sections 3 and 6): in a real browser the heading and tab read "neumetype", the title renders from the bundled Lexend Deca font, and clicking it during a test or on the results gives a new test with zeroed counts, without keeping focus.
+21. Favicon (section 6): in a real browser the page links an SVG icon that is served; its corners are transparent, its tile is `--bg`, and its `--accent` shape overlaps U+E040 drawn by the bundled font (over 93%), unstretched and centred.
+22. Title (sections 3 and 6): in a real browser the heading and tab read "neumetype", the title renders from the bundled Lexend Deca font, and clicking it during a test or on the results gives a new test with zeroed counts, without keeping focus.
 
 ## Appendix A: Characters of Quantity
 
